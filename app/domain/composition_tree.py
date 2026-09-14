@@ -5,7 +5,7 @@ from app.domain.composition_node import CompositionNode
 
 class CompositionTree:
     """
-    Representa a árvore completa de composições.
+    Representa a árvore completa de ocorrências de composições.
 
     A árvore possui um único nó raiz e uma quantidade
     arbitrária de filhos por nó.
@@ -63,8 +63,6 @@ class CompositionTree:
 
         nodes: list[CompositionNode] = []
 
-        visited: set[int] = set()
-
         visiting: set[int] = set()
 
         def visit(
@@ -83,14 +81,6 @@ class CompositionTree:
                     "Cycle detected in composition tree: "
                     f"{node.composition.generic_item}"
                 )
-
-            # ========================================================
-            # NÓ JÁ PROCESSADO
-            # ========================================================
-
-            if node_id in visited:
-
-                return
 
             # ========================================================
             # INÍCIO DA VISITA
@@ -115,10 +105,6 @@ class CompositionTree:
             # ========================================================
 
             visiting.remove(
-                node_id
-            )
-
-            visited.add(
                 node_id
             )
 

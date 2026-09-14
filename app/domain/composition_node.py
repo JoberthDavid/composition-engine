@@ -1,91 +1,58 @@
-from decimal import Decimal
+from __future__ import annotations
 
-from app.domain.composition import Composition
-from app.domain.composition_input import CompositionInput
+from decimal import Decimal
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.domain.composition import Composition
+    from app.domain.composition_input import CompositionInput
 
 
 class CompositionNode:
     """
-    Representa uma composição dentro da árvore de composições.
+    Representa uma ocorrência de uma composição dentro da árvore.
 
-    Cada nó possui:
+    Cada nó representa uma ocorrência específica de uma composição.
+    A estrutura é uma árvore de ocorrências, portanto cada nó possui
+    no máximo um pai.
 
-    - uma composição;
-    - uma referência ao nó pai;
-    - o CompositionInput que originou a referência;
-    - zero ou mais nós filhos.
-
-    Os filhos representam composições referenciadas por:
-
-    - AX: Atividade Auxiliar;
-    - TF: Tempo Fixo.
-
-    O atributo reference_input é especialmente importante porque
-    identifica exatamente qual insumo da composição pai originou
-    aquele nó.
-
-    Dessa forma, o nó filho consegue identificar diretamente:
-
-    - o código da referência;
-    - a quantidade utilizada;
-    - o grupo do insumo;
-    - se a referência é AX;
-    - se a referência é TF.
-
-    Isso evita a necessidade de procurar novamente o insumo dentro
-    da composição pai durante o cálculo.
+    O nó concentra apenas:
+    - seu estado;
+    - sua relação imediata com pai e filhos;
+    - regras de negócio próprias da ocorrência;
+    - cálculos de quantidade derivados de sua posição na árvore.
     """
 
     def __init__(
         self,
         composition: Composition,
         reference_input: CompositionInput | None = None,
-        parent: "CompositionNode | None" = None,
+        parent: CompositionNode | None = None,
     ) -> None:
         """
-        Inicializa um nó da árvore de composições.
+        Inicializa uma ocorrência de composição.
 
-        Parameters
-        ----------
-        composition:
-            A composição representada pelo nó.
-
-        reference_input:
-            O CompositionInput da composição pai que originou
-            esta composição filha.
-
-            Para o nó raiz, o valor deve ser None.
-
-        parent:
-            O nó pai da árvore.
-
-            Para o nó raiz, o valor deve ser None.
+        Args:
+            composition: Composição representada pela ocorrência.
+            reference_input: Insumo de composição que originou esta
+                ocorrência, quando aplicável.
+            parent: Pai da ocorrência, quando aplicável.
         """
-
         self.composition = composition
         self.reference_input = reference_input
         self.parent = parent
-
-        self.children: list["CompositionNode"] = []
-
-    # ============================================================
-    # REFERÊNCIA
-    # ============================================================
+        self.children: list[CompositionNode] = []
 
     @property
-    def reference_quantity(self) -> Decimal | None:
+    def reference_quantity(self) -> Decimal:
         """
-        Retorna a quantidade utilizada para referenciar
-        esta composição dentro da composição pai.
+        Retorna a quantidade da referência que originou o nó.
 
-        A quantidade é obtida diretamente do CompositionInput
-        que originou o nó.
-
-        Para o nó raiz, retorna None.
+        Para a raiz, que não possui uma referência de origem,
+        a quantidade considerada é 1.
         """
-
         if self.reference_input is None:
-            return None
+            return Decimal("1")
 
         return self.reference_input.input_quantity
 
@@ -93,10 +60,7 @@ class CompositionNode:
     def reference_code(self) -> str | None:
         """
         Retorna o código da referência que originou o nó.
-
-        Para o nó raiz, retorna None.
         """
-
         if self.reference_input is None:
             return None
 
@@ -105,241 +69,167 @@ class CompositionNode:
     @property
     def reference_group(self) -> str | None:
         """
-        Retorna o grupo do insumo que originou a referência.
-
-        Exemplos:
-
-        - AX
-        - TF
-
-        Para o nó raiz, retorna None.
+        Retorna o grupo da referência que originou o nó.
         """
-
         if self.reference_input is None:
             return None
 
         return self.reference_input.input_group
 
-    # ============================================================
-    # IDENTIFICAÇÃO DO NÓ
-    # ============================================================
-
     def is_root(self) -> bool:
         """
         Verifica se o nó é a raiz da árvore.
         """
-
         return self.parent is None
 
     def is_auxiliary_activity(self) -> bool:
         """
-        Verifica se o nó foi originado por uma
-        atividade auxiliar (AX).
-
-        O nó raiz nunca é uma atividade auxiliar.
+        Verifica se o nó foi originado por uma atividade auxiliar.
         """
-
-        if self.reference_input is None:
-            return False
-
         return (
-            self.reference_input.is_auxiliary_activity()
+            self.reference_input is not None
+            and self.reference_input.is_auxiliary_activity()
         )
 
     def is_fixed_time(self) -> bool:
         """
-        Verifica se o nó foi originado por
-        uma referência de tempo fixo (TF).
-
-        O nó raiz nunca é um tempo fixo.
+        Verifica se o nó foi originado por um tempo fixo.
         """
-
-        if self.reference_input is None:
-            return False
-
         return (
-            self.reference_input.is_fixed_time()
+            self.reference_input is not None
+            and self.reference_input.is_fixed_time()
         )
 
     def is_composition_reference(self) -> bool:
         """
-        Verifica se o nó foi originado por uma referência
-        para outra composição.
-
-        Atualmente isso significa:
-
-        - AX
-        - TF
+        Verifica se o nó representa uma referência de composição.
         """
-
-        if self.reference_input is None:
-            return False
-
         return (
-            self.reference_input.is_composition_reference()
+            self.reference_input is not None
+            and self.reference_input.is_composition_reference()
         )
 
-    # ============================================================
-    # ÁRVORE
-    # ============================================================
-
-    def add_child(
-        self,
-        child: "CompositionNode",
-    ) -> None:
+    def add_child(self, child: CompositionNode) -> None:
         """
-        Adiciona um nó filho ao nó atual.
+        Adiciona uma ocorrência filha ao nó.
 
-        O nó atual passa automaticamente a ser definido
-        como pai do filho.
+        Como a estrutura do domínio é uma árvore de ocorrências,
+        um nó não pode:
+        - ser filho de si mesmo;
+        - possuir outro pai;
+        - ser adicionado duas vezes ao mesmo pai;
+        - criar um ciclo na estrutura hierárquica.
+
+        Args:
+            child: Ocorrência que será adicionada como filha.
+
+        Raises:
+            ValueError: Quando a operação violar a estrutura de árvore.
         """
+        if child is self:
+            raise ValueError(
+                "O nó não pode ser seu próprio filho"
+            )
+
+        if child.parent is not None and child.parent is not self:
+            raise ValueError(
+                "O nó não pode ter mais de um nó pai."
+            )
+
+        if child in self.children:
+            raise ValueError(
+                "O nó já é filho deste nó pai."
+            )
+
+        ancestor = self
+
+        while ancestor is not None:
+            if ancestor is child:
+                raise ValueError(
+                    "O nó não pode ser adicionado abaixo de seu descendente"
+                )
+
+            ancestor = ancestor.parent
 
         child.parent = self
-
-        self.children.append(
-            child
-        )
+        self.children.append(child)
 
     def has_children(self) -> bool:
         """
-        Verifica se o nó possui filhos.
+        Verifica se o nó possui ocorrências filhas.
         """
-
-        return bool(
-            self.children
-        )
+        return bool(self.children)
 
     def get_children_count(self) -> int:
         """
-        Retorna a quantidade de nós filhos.
+        Retorna a quantidade de ocorrências filhas.
         """
-
-        return len(
-            self.children
-        )
-
-    # ============================================================
-    # QUANTIDADES NA ÁRVORE
-    # ============================================================
+        return len(self.children)
 
     @property
     def effective_quantity(self) -> Decimal:
         """
-        Calcula a quantidade efetiva da composição
-        dentro da árvore.
+        Calcula a quantidade efetiva da ocorrência.
 
-        Para o nó raiz:
+        Para a raiz:
 
-            effective_quantity = 1
+            1
 
         Para os demais nós:
 
             quantidade efetiva do pai
             × quantidade da referência
-            ÷ produção da composição atual
+            ÷ produção da composição
 
-        Observação:
-
-        Este cálculo representa a propagação de quantidade
-        considerando a produção da composição filha.
+        A regra de negócio existente é preservada.
         """
-
         if self.is_root():
             return Decimal("1")
 
-        reference_quantity = self.reference_quantity
+        production = self.composition.production
 
-        if reference_quantity is None:
-
-            if self.parent is None:
-                return Decimal("1")
-
-            return self.parent.effective_quantity
-
-        if self.composition.production == Decimal("0"):
-
+        if production == 0:
             raise ValueError(
-                "Composition production cannot be zero: "
+                f"Composition production cannot be zero: "
                 f"{self.composition.code}"
             )
 
-        if self.parent is None:
-            return Decimal("1")
-
         return (
             self.parent.effective_quantity
-            * reference_quantity
-            / self.composition.production
+            * self.reference_quantity
+            / production
         )
 
     @property
     def accumulated_quantity(self) -> Decimal:
         """
-        Calcula a quantidade acumulada ao longo
-        do caminho da árvore.
+        Calcula a quantidade acumulada ao longo do caminho da árvore.
 
-        A produção NÃO é aplicada neste cálculo.
+        Para a raiz:
 
-        Para o nó raiz:
-
-            accumulated_quantity = 1
+            1
 
         Para os demais nós:
 
             quantidade acumulada do pai
             × quantidade da referência
 
-        Exemplo:
-
-        Raiz
-            quantidade = 1
-
-        AX 1
-            quantidade = 10
-
-        AX 2
-            quantidade = 5
-
-        Quantidade acumulada do AX 2:
-
-            1 × 10 × 5 = 50
+        A quantidade acumulada não incorpora a produção da composição.
         """
-
         if self.is_root():
-            return Decimal("1")
-
-        reference_quantity = self.reference_quantity
-
-        if reference_quantity is None:
-
-            if self.parent is None:
-                return Decimal("1")
-
-            return self.parent.accumulated_quantity
-
-        if self.parent is None:
             return Decimal("1")
 
         return (
             self.parent.accumulated_quantity
-            * reference_quantity
+            * self.reference_quantity
         )
-
-    # ============================================================
-    # REPRESENTAÇÃO
-    # ============================================================
 
     def __repr__(self) -> str:
         """
         Retorna uma representação textual do nó.
         """
-
         return (
-            "CompositionNode("
-            f"code='{self.composition.code}', "
-            f"reference_code={self.reference_code!r}, "
-            f"reference_group={self.reference_group!r}, "
-            f"reference_quantity={self.reference_quantity!r}, "
-            f"effective_quantity={self.effective_quantity}"
-            ")"
+            f"CompositionNode("
+            f"composition_code={self.composition.code!r}, "
+            f"reference_code={self.reference_code!r})"
         )

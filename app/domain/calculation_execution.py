@@ -14,7 +14,7 @@ class CalculationExecution:
 
     def __init__(self) -> None:
         self._results: dict[
-            int,
+            CompositionNode,
             CompositionCalculationResult,
         ] = {}
 
@@ -27,7 +27,7 @@ class CalculationExecution:
         Armazena o resultado calculado de um nó.
         """
 
-        self._results[id(node)] = result
+        self._results[node] = result
 
     def get_result(
         self,
@@ -37,15 +37,13 @@ class CalculationExecution:
         Retorna o resultado calculado de um nó.
         """
 
-        node_id = id(node)
-
-        if node_id not in self._results:
+        if node not in self._results:
             raise ValueError(
                 "Composition result not found for node: "
                 f"{node.composition.generic_item}"
             )
 
-        return self._results[node_id]
+        return self._results[node]
 
     def get_all_results(
         self,

@@ -38,10 +38,20 @@ class CompositionNode:
                 ocorrência, quando aplicável.
             parent: Pai da ocorrência, quando aplicável.
         """
+        self._validate_production(composition)
+
         self.composition = composition
         self.reference_input = reference_input
         self.parent = parent
         self.children: list[CompositionNode] = []
+
+    @staticmethod
+    def _validate_production(composition: Composition) -> None:
+        if composition.production <= Decimal("0"):
+            raise ValueError(
+                "Composition production must be greater than zero: "
+                f"{composition.code}"
+            )
 
     @property
     def reference_quantity(self) -> Decimal:
@@ -187,12 +197,6 @@ class CompositionNode:
             return Decimal("1")
 
         production = self.composition.production
-
-        if production == 0:
-            raise ValueError(
-                f"Composition production cannot be zero: "
-                f"{self.composition.code}"
-            )
 
         return (
             self.parent.effective_quantity

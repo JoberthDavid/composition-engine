@@ -4,6 +4,7 @@ from typing import Callable
 from app.domain.calculation_context import (
     CalculationContext,
 )
+from app.domain.calculation_execution import CalculationExecution
 from app.domain.composition_calculation_result import (
     CompositionCalculationResult,
 )
@@ -145,11 +146,6 @@ class CompositionCalculator:
         self.round_2 = round_2
         self.round_4 = round_4
 
-        self._results: dict[
-            int,
-            CompositionCalculationResult,
-        ] = {}
-
 
     # ============================================================
     # MÉTODO PÚBLICO PRINCIPAL
@@ -171,19 +167,21 @@ class CompositionCalculator:
             composição raiz
         """
 
-        self._results.clear()
+        execution = CalculationExecution()
 
         for node in tree.walk_post_order():
 
             result = self._calculate_node(
                 node=node,
+                execution=execution,
             )
 
-            self._results[
-                id(node)
-            ] = result
+            execution.add_result(
+                node=node,
+                result=result,
+            )
 
-        return self._get_node_result(
+        return execution.get_result(
             node=tree.root,
         )
 
@@ -194,6 +192,7 @@ class CompositionCalculator:
     def _calculate_node(
         self,
         node: CompositionNode,
+        execution: CalculationExecution,
     ) -> CompositionCalculationResult:
         """
         Calcula completamente uma composição.
@@ -306,6 +305,7 @@ class CompositionCalculator:
             self._calculate_children_cost(
                 node=node,
                 input_group="AX",
+                execution=execution,
             )
         )
 
@@ -317,6 +317,7 @@ class CompositionCalculator:
             self._calculate_children_cost(
                 node=node,
                 input_group="TF",
+                execution=execution,
             )
         )
 
@@ -501,6 +502,7 @@ class CompositionCalculator:
         self,
         node: CompositionNode,
         input_group: str,
+        execution: CalculationExecution,
     ) -> Decimal:
         """
         Calcula o custo das composições filhas AX ou TF.
@@ -531,10 +533,8 @@ class CompositionCalculator:
             ):
                 continue
 
-            child_result = (
-                self._get_node_result(
-                    node=child,
-                )
+            child_result = execution.get_result(
+                node=child,
             )
 
             child_unit = (
@@ -557,59 +557,3 @@ class CompositionCalculator:
             children_cost += line_cost
 
         return children_cost
-
-    # ============================================================
-    # RESULTADOS
-    # ============================================================
-
-    def _get_node_result(
-        self,
-        node: CompositionNode,
-    ) -> CompositionCalculationResult:
-        """
-        Obtém o resultado calculado de um nó.
-
-        Como o cálculo ocorre em pós-ordem, uma composição
-        filha deve possuir resultado antes de sua composição pai.
-        """
-
-        node_id = id(node)
-
-        if node_id not in self._results:
-
-            raise ValueError(
-                "Composition result not found for node: "
-                f"{node.composition.generic_item}"
-            )
-
-        return self._results[
-            node_id
-        ]
-
-    def get_result(
-        self,
-        node: CompositionNode,
-    ) -> CompositionCalculationResult:
-        """
-        Retorna o resultado calculado de um nó.
-
-        Deve ser utilizado após calculate().
-        """
-
-        return self._get_node_result(
-            node=node,
-        )
-
-    def get_all_results(
-        self,
-    ) -> list[CompositionCalculationResult]:
-        """
-        Retorna todos os resultados calculados.
-
-        A ordem corresponde à ordem em que os nós foram
-        calculados em pós-ordem.
-        """
-
-        return list(
-            self._results.values()
-        )

@@ -70,11 +70,6 @@ class PrecisionOnlyCalculator(UnitRecursiveFicCalculator):
         self.processed_nodes += 1
         composition = node.composition
 
-        if composition.production == ZERO:
-            raise ValueError(
-                f"Composition production cannot be zero: {composition.code}"
-            )
-
         # ---------------------------------------------------------------
         # EQ / MO / MA: exatamente os métodos atuais.
         # ---------------------------------------------------------------

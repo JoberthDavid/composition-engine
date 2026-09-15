@@ -29,7 +29,6 @@ from app.services.operational_cost_calculator import (
     OperationalCostCalculator,
 )
 
-
 DECIMAL_ZERO = Decimal("0")
 
 
@@ -151,24 +150,6 @@ class CompositionCalculator:
             CompositionCalculationResult,
         ] = {}
 
-    # ============================================================
-    # VALIDAÇÕES
-    # ============================================================
-
-    def _validate_production(
-        self,
-        production: Decimal,
-    ) -> None:
-        """
-        Valida a produção da composição.
-
-        A produção deve ser maior que zero.
-        """
-
-        if production <= DECIMAL_ZERO:
-            raise ValueError(
-                "Composition production must be greater than zero."
-            )
 
     # ============================================================
     # MÉTODO PÚBLICO PRINCIPAL
@@ -223,14 +204,6 @@ class CompositionCalculator:
         """
 
         composition = node.composition
-
-        # ========================================================
-        # VALIDAÇÃO DA PRODUÇÃO
-        # ========================================================
-
-        self._validate_production(
-            production=composition.production,
-        )
 
         # ========================================================
         # 1. EQUIPAMENTOS

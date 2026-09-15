@@ -156,11 +156,6 @@ class FourBranchAnalyzer:
         workman_cost = ZERO
         material_cost = ZERO
 
-        if composition.production == ZERO:
-            raise ValueError(
-                f"Production cannot be zero: {composition.code}"
-            )
-
         for composition_input in composition.inputs:
             if composition_input.is_composition_reference():
                 continue

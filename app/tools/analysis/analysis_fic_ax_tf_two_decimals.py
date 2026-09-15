@@ -42,11 +42,6 @@ class TwoDecimalChildCostCalculator(UnitRecursiveFicCalculator):
         self.processed_nodes += 1
         composition = node.composition
 
-        if composition.production == Decimal("0"):
-            raise ValueError(
-                f"Composition production cannot be zero: {composition.code}"
-            )
-
         equipment_cost = Decimal("0")
         workman_cost = Decimal("0")
         material_cost = Decimal("0")

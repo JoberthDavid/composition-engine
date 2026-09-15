@@ -66,12 +66,6 @@ def calculate_line_quantity(
         "MO",
     }:
 
-        if production == Decimal("0"):
-            raise ValueError(
-                f"Composition production cannot be zero: "
-                f"{composition.code}"
-            )
-
         return (
             accumulated_quantity
             * composition_input.quantity

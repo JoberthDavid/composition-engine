@@ -64,11 +64,6 @@ class OperationalCostCalculator:
             "Operational total",
         )
 
-        if production <= Decimal("0"):
-            raise ValueError(
-                "Production must be greater than zero."
-            )
-
         return operational_total / production
 
     def _validate_cost(

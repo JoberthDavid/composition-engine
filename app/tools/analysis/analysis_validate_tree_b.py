@@ -242,11 +242,6 @@ class TreeBValidator:
         """Calcula EQ, MO, MA e FIC exatamente como no cálculo-base."""
         composition = node.composition
 
-        if composition.production == ZERO:
-            raise ValueError(
-                f"Production cannot be zero: {composition.code}"
-            )
-
         equipment_cost = ZERO
         workman_cost = ZERO
         material_cost = ZERO

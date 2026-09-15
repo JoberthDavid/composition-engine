@@ -228,10 +228,6 @@ class AxTfPrecisionTester:
 
     def _own_cost(self, composition) -> Decimal:
         """Calcula EQ, MO, MA e FIC com a lógica atual."""
-        if composition.production == ZERO:
-            raise ValueError(
-                f"Production cannot be zero: {composition.code}"
-            )
 
         equipment = ZERO
         workman = ZERO

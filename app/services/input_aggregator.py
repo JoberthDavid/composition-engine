@@ -83,11 +83,6 @@ class InputAggregator:
 
         production = node.composition.production
 
-        self._validate_production(
-            node=node,
-            production=production,
-        )
-
         base_quantity = (
             composition_input.input_quantity
             * node.accumulated_quantity
@@ -144,11 +139,6 @@ class InputAggregator:
         """
 
         production = node.composition.production
-
-        self._validate_production(
-            node=node,
-            production=production,
-        )
 
         quantity = (
             composition_input.input_quantity
@@ -219,18 +209,3 @@ class InputAggregator:
         else:
 
             aggregated.add_quantity(quantity)
-
-    @staticmethod
-    def _validate_production(
-        node: CompositionNode,
-        production: Decimal,
-    ) -> None:
-        """
-        Valida se a produção da composição é diferente de zero.
-        """
-
-        if production == Decimal("0"):
-            raise ValueError(
-                f"Composition production cannot be zero: "
-                f"{node.composition.code}"
-            )

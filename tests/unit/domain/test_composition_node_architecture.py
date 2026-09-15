@@ -286,43 +286,6 @@ def test_node_calculates_accumulated_quantity_without_production() -> None:
     assert grandchild.accumulated_quantity == Decimal("12")
 
 
-def test_node_rejects_zero_production_for_effective_quantity() -> None:
-    """
-    Verifica que uma ocorrência não pode calcular quantidade efetiva
-    quando sua produção é zero.
-    """
-    root = _build_node(
-        identifier=1,
-        code="ROOT",
-    )
-
-    reference = _build_reference_input(
-        identifier=10,
-        code="CHILD",
-        quantity="2",
-    )
-
-    child = _build_node(
-        identifier=2,
-        code="CHILD",
-        production="0",
-        reference_input=reference,
-    )
-
-    root.add_child(child)
-
-    try:
-        child.effective_quantity
-    except ValueError as error:
-        assert str(error) == (
-            "Composition production cannot be zero: CHILD"
-        )
-    else:
-        raise AssertionError(
-            "effective_quantity deveria rejeitar produção zero."
-        )
-
-
 # ============================================================================
 # LIMITE DE RESPONSABILIDADE — TRAVESSIA
 # ============================================================================

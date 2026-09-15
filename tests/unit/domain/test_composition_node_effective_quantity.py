@@ -212,38 +212,3 @@ def test_effective_quantity_supports_decimal_precision() -> None:
     )
 
     assert grandchild_node.effective_quantity == expected_quantity
-
-
-def test_effective_quantity_raises_when_production_is_zero() -> None:
-    """
-    Verifica que uma composição filha com produção zero
-    gera erro durante o cálculo da quantidade efetiva.
-    """
-
-    root_node = CompositionNode(
-        composition=_build_composition(
-            identifier=1,
-            code="ROOT",
-        ),
-    )
-
-    child_node = CompositionNode(
-        composition=_build_composition(
-            identifier=2,
-            code="CHILD",
-            production="0",
-        ),
-        reference_input=_build_reference_input(
-            identifier=1,
-            code="CHILD",
-            quantity="10",
-        ),
-    )
-
-    root_node.add_child(child_node)
-
-    with pytest.raises(
-        ValueError,
-        match=r"^Composition production cannot be zero: CHILD$",
-    ):
-        _ = child_node.effective_quantity

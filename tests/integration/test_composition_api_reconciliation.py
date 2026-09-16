@@ -2,6 +2,7 @@ from datetime import date
 from decimal import Decimal, ROUND_HALF_UP
 
 from app.domain.calculation_context import CalculationContext
+from app.infrastructure.composition_api_client import CompositionApiClient
 from app.infrastructure.monetary_value_api_client import MonetaryValueApiClient
 from app.repositories.composition_repository import CompositionRepository
 from app.repositories.monetary_value_repository import MonetaryValueRepository
@@ -41,7 +42,11 @@ def test_composition_0919013_matches_api_value():
     )
 
     # Resolve a árvore da composição.
-    composition_repository = CompositionRepository()
+    api_client = CompositionApiClient()
+
+    composition_repository = CompositionRepository(
+        api_client=api_client,
+    )
     composition_resolver = CompositionResolver(
         repository=composition_repository,
     )
@@ -53,7 +58,11 @@ def test_composition_0919013_matches_api_value():
 
     # Carrega somente os valores monetários necessários
     # para a árvore da composição.
-    monetary_value_repository = MonetaryValueRepository()
+    monetary_value_api_client = MonetaryValueApiClient()
+
+    monetary_value_repository = MonetaryValueRepository(
+        api_client=monetary_value_api_client,
+    )
 
     monetary_value_repository.load_cache(
         codes_by_group=root.monetary_item_codes_by_group,

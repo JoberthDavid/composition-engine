@@ -2,6 +2,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
 from app.domain.calculation_context import CalculationContext
+from app.infrastructure.composition_api_client import CompositionApiClient
 from app.infrastructure.monetary_value_api_client import MonetaryValueApiClient
 from app.repositories.composition_repository import CompositionRepository
 from app.repositories.monetary_value_repository import MonetaryValueRepository
@@ -113,7 +114,11 @@ def test_monetary_value_cache_parallel_equivalence():
     )
 
     # Resolve a árvore da composição.
-    composition_repository = CompositionRepository()
+    api_client = CompositionApiClient()
+
+    composition_repository = CompositionRepository(
+        api_client=api_client,
+    )
 
     composition_resolver = CompositionResolver(
         repository=composition_repository,
@@ -129,7 +134,11 @@ def test_monetary_value_cache_parallel_equivalence():
     # Carregamento sequencial atual.
     # ------------------------------------------------------------
 
-    sequential_repository = MonetaryValueRepository()
+    sequential_api_client = MonetaryValueApiClient()
+
+    sequential_repository = MonetaryValueRepository(
+        api_client=sequential_api_client,
+    )
 
     sequential_repository.load_cache(
         codes_by_group=codes_by_group,
@@ -142,7 +151,11 @@ def test_monetary_value_cache_parallel_equivalence():
     # Carregamento paralelo de referência.
     # ------------------------------------------------------------
 
-    parallel_repository = MonetaryValueRepository()
+    parallel_api_client = MonetaryValueApiClient()
+
+    parallel_repository = MonetaryValueRepository(
+        api_client=parallel_api_client,
+    )
 
     _load_cache_parallel(
         repository=parallel_repository,

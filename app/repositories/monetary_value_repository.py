@@ -35,22 +35,19 @@ class MonetaryValueRepository:
 
     BATCH_SIZE = 20
 
+
     def __init__(
         self,
-        api_client: MonetaryValueApiClient | None = None,
+        api_client: MonetaryValueApiClient,
     ) -> None:
-        self.api_client = (
-            api_client
-            if api_client is not None
-            else MonetaryValueApiClient()
-        )
+        self.api_client = api_client
 
         self._cache: dict[str, list[MonetaryValue]] = {}
 
         self._cache_source_file_uf: str | None = None
         self._cache_source_file_data_base: date | None = None
         self._cache_type_system: str | None = None
-
+        
     def get_by_code(
         self,
         code: str,

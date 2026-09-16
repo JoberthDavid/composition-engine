@@ -47,20 +47,16 @@ class MonetaryValueResolver:
 
     def __init__(
         self,
-        repository: MonetaryValueRepository | None = None,
+        repository: MonetaryValueRepository,
     ) -> None:
         """
         Inicializa o resolver.
 
-        Caso nenhum repositório seja informado,
-        utiliza MonetaryValueRepository padrão.
+        O repositório deve ser fornecido explicitamente pelo
+        CompositionRoot.
         """
 
-        self.repository = (
-            repository
-            if repository is not None
-            else MonetaryValueRepository()
-        )
+        self.repository = repository
 
     # ============================================================
     # MÉTODO PÚBLICO

@@ -1,5 +1,5 @@
 from datetime import date
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 
 from app.domain.calculation_context import CalculationContext
 from app.infrastructure.composition_api_client import CompositionApiClient
@@ -14,12 +14,32 @@ from app.services.fic_calculator import FicCalculator
 from app.services.labor_calculator import LaborCalculator
 from app.services.material_calculator import MaterialCalculator
 from app.services.operational_cost_calculator import OperationalCostCalculator
-from app.tools.debug.debug_query_metrics import round_2, round_4
 from app.services.monetary_value_resolver import MonetaryValueResolver
 
 COMPOSITION_CODE = "0919013"
 COMPOSITION_DATA_BASE = "2021-10-01"
 MONETARY_DATA_BASE = date(2021, 10, 1)
+
+
+def round_2(
+    value: Decimal,
+    ) -> Decimal:
+    """Arredonda um valor para duas casas decimais."""
+
+    return value.quantize(
+        Decimal("0.01"),
+        rounding=ROUND_HALF_UP,
+    )
+
+def round_4(
+    value: Decimal,
+    ) -> Decimal:
+    """Arredonda um valor para quatro casas decimais."""
+
+    return value.quantize(
+        Decimal("0.0001"),
+        rounding=ROUND_HALF_UP,
+    )
 
 def _build_composition_calculator(
     calculation_context: CalculationContext,

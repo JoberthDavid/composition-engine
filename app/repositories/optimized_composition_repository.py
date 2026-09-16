@@ -10,16 +10,13 @@ class OptimizedCompositionRepository:
     a data-base da estrutura das composições.
     """
 
+
     def __init__(
         self,
-        api_client: CompositionApiClient | None = None,
+        api_client: CompositionApiClient,
         composition_data_base: str | None = None,
     ) -> None:
-        self.api_client = (
-            api_client
-            if api_client is not None
-            else CompositionApiClient()
-        )
+        self.api_client = api_client
 
         self.composition_data_base = (
             composition_data_base

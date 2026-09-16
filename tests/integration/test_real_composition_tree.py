@@ -1,4 +1,6 @@
 from app.domain.composition_tree import CompositionTree
+from app.infrastructure.composition_api_client import CompositionApiClient
+from app.repositories.composition_repository import CompositionRepository
 from app.services.composition_resolver import CompositionResolver
 
 
@@ -71,7 +73,15 @@ def test_real_composition_tree() -> None:
     # RESOLVER
     # ============================================================
 
-    resolver = CompositionResolver()
+    api_client = CompositionApiClient()
+
+    composition_repository = CompositionRepository(
+        api_client=api_client,
+    )
+
+    resolver = CompositionResolver(
+        repository=composition_repository,
+    )
 
     # ============================================================
     # CONSTRUÇÃO DA ÁRVORE

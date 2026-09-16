@@ -30,19 +30,14 @@ class CompositionResolver:
     - AX: Atividade Auxiliar
     - TF: Tempo Fixo
     """
-
+    
     def __init__(
         self,
-        repository: CompositionRepository | None = None,
+        repository: CompositionRepository,
         optimized_repository: OptimizedCompositionRepository | None = None,
     ) -> None:
 
-        self.repository = (
-            repository
-            if repository is not None
-            else CompositionRepository()
-        )
-
+        self.repository = repository
         self.optimized_repository = optimized_repository
 
     # ============================================================

@@ -16,16 +16,11 @@ class CompositionRepository:
 
     BATCH_SIZE = 20
 
-
     def __init__(
         self,
-        api_client: CompositionApiClient | None = None,
+        api_client: CompositionApiClient,
     ) -> None:
-        self.api_client = (
-            api_client
-            if api_client is not None
-            else CompositionApiClient()
-        )
+        self.api_client = api_client
 
         self._cache: dict[str, Composition] = {}
 

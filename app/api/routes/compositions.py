@@ -71,8 +71,8 @@ def explode_composition(
 
     return {
         "composition": {
-            "code": result.root_node.composition.generic_item,
-            "nodes": _count_nodes(result.root_node),
+            "code": result.root_node.root.composition.generic_item,
+            "nodes": _count_nodes(result.root_node.root),
         },
         "compositions": [
             {

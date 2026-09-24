@@ -8,6 +8,7 @@ from app.domain.aggregated_composition import AggregatedComposition
 from app.domain.aggregated_input import AggregatedInput
 from app.domain.composition import Composition
 from app.domain.composition_node import CompositionNode
+from app.domain.composition_tree import CompositionTree
 from app.domain.composition_explosion_result import (
     CompositionExplosionResult,
 )
@@ -15,7 +16,6 @@ from app.main import app
 
 
 client = TestClient(app)
-
 
 def create_explosion_result() -> CompositionExplosionResult:
     composition = Composition(
@@ -35,6 +35,10 @@ def create_explosion_result() -> CompositionExplosionResult:
 
     root_node = CompositionNode(
         composition=composition,
+    )
+
+    tree = CompositionTree(
+        root=root_node,
     )
 
     aggregated_composition = AggregatedComposition(
@@ -59,7 +63,7 @@ def create_explosion_result() -> CompositionExplosionResult:
     )
 
     return CompositionExplosionResult(
-        root_node=root_node,
+        root_node=tree,
         compositions=[aggregated_composition],
         inputs=[aggregated_input],
     )

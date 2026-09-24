@@ -4,8 +4,8 @@ from app.domain.aggregated_composition import (
 from app.domain.aggregated_input import (
     AggregatedInput,
 )
-from app.domain.composition_node import (
-    CompositionNode,
+from app.domain.composition_tree import (
+    CompositionTree,
 )
 
 
@@ -17,7 +17,7 @@ class CompositionExplosionResult:
 
     def __init__(
         self,
-        root_node: CompositionNode,
+        root_node: CompositionTree,
         compositions: list[
             AggregatedComposition
         ],

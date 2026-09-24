@@ -7,32 +7,31 @@ from app.infrastructure.api_query_metrics import (
     ApiQueryMetrics,
 )
 
-# URL = "http://127.0.0.1:8000"
-URL = "https://web-production-5eeb7.up.railway.app"
+from app.config import get_settings
+
 
 class CompositionApiError(Exception):
     """Erro durante a comunicação com a API de composições."""
 
 
 class CompositionApiClient:
-    """Cliente responsável pelo consumo da API de composições.
-    URL = "http://127.0.0.1:8000",
-    URL = "https://web-production-5eeb7.up.railway.app"
-    """
+    """Cliente responsável pelo consumo da API de composições."""
 
 
     def __init__(
         self,
-        base_url: str = (
-            URL
-        ),
+        base_url: str | None = None,
         metrics: ApiQueryMetrics | None = None,
     ) -> None:
 
-        self.base_url = base_url.rstrip("/")
+        resolved_base_url = (
+            base_url
+            if base_url is not None
+            else get_settings().scraper_api_base_url
+        )
+
+        self.base_url = resolved_base_url.rstrip("/")
         self.metrics = metrics
-
-
 
     def get_composition_by_code(
         self,

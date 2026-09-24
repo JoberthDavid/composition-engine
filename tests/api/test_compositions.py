@@ -75,9 +75,11 @@ def test_explode_composition():
 
     try:
         response = client.get(
-            "/compositions/4011209/explosion"
+            "/compositions/4011209/explosion",
+            headers={
+                "X-API-Key": "test-api-key",
+            },
         )
-
         assert response.status_code == 200
 
         assert response.json() == {
@@ -129,7 +131,10 @@ def test_explode_composition_returns_404_when_composition_is_not_found():
 
     try:
         response = client.get(
-            "/compositions/9999999/explosion"
+            "/compositions/9999999/explosion",
+            headers={
+                "X-API-Key": "test-api-key",
+            },
         )
 
         assert response.status_code == 404
@@ -160,7 +165,10 @@ def test_explode_composition_propagates_unexpected_error():
     try:
         try:
             client.get(
-                "/compositions/4011209/explosion"
+                "/compositions/4011209/explosion",
+            headers={
+                "X-API-Key": "test-api-key",
+            },
             )
             assert False, "Era esperado RuntimeError"
         except RuntimeError as exc:

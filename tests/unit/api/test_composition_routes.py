@@ -11,7 +11,9 @@ from app.api.routes.compositions import router
 from app.api.dependencies import (
     create_composition_calculation_service,
 )
-
+API_HEADERS = {
+    "X-API-Key": "test-api-key",
+}
 
 def create_test_app(
     service: Mock,
@@ -43,6 +45,7 @@ def test_calculate_returns_public_contract() -> None:
 
     response = client.post(
         "/compositions/calculate",
+        headers=API_HEADERS,
         json={
             "composition_id": "0919013",
             "source_file_uf": "DF",
@@ -74,6 +77,7 @@ def test_calculate_rejects_missing_composition_id() -> None:
 
     response = client.post(
         "/compositions/calculate",
+        headers=API_HEADERS,
         json={
             "source_file_uf": "DF",
             "type_system": "ON",
@@ -96,6 +100,7 @@ def test_calculate_rejects_invalid_monetary_base_date() -> None:
 
     response = client.post(
         "/compositions/calculate",
+        headers=API_HEADERS,
         json={
             "composition_id": "0919013",
             "source_file_uf": "DF",
@@ -119,6 +124,7 @@ def test_calculate_rejects_missing_source_file_uf() -> None:
 
     response = client.post(
         "/compositions/calculate",
+        headers=API_HEADERS,
         json={
             "composition_id": "0919013",
             "type_system": "ON",
@@ -174,6 +180,7 @@ def test_calculate_calls_service_with_composition_id() -> None:
 
     response = client.post(
         "/compositions/calculate",
+        headers=API_HEADERS,
         json={
             "composition_id": "0919013",
             "source_file_uf": "DF",
@@ -200,6 +207,7 @@ def test_calculate_returns_expected_response() -> None:
 
     response = client.post(
         "/compositions/calculate",
+        headers=API_HEADERS,
         json={
             "composition_id": "0919013",
             "source_file_uf": "DF",
@@ -227,6 +235,7 @@ def test_calculate_rejects_invalid_request() -> None:
 
     response = client.post(
         "/compositions/calculate",
+        headers=API_HEADERS,
         json={
             "composition_id": "0919013",
             "source_file_uf": "DF",

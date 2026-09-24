@@ -13,6 +13,7 @@ from app.services.composition_calculation_service import (
 )
 from app.services.composition_explosion import CompositionExplosion
 
+from app.api.security import require_api_key
 
 router = APIRouter(
     prefix="/compositions",
@@ -29,6 +30,7 @@ def _count_nodes(node) -> int:
 @router.post(
     "/calculate",
     response_model=CompositionCalculationResponse,
+    dependencies=[Depends(require_api_key)],
 )
 def calculate(
     request: CompositionCalculationRequest,
@@ -50,6 +52,7 @@ def calculate(
 
 @router.get(
     "/{composition_id}/explosion",
+    dependencies=[Depends(require_api_key)],
 )
 def explode_composition(
     composition_id: str,

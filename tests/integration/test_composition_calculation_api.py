@@ -8,6 +8,9 @@ def test_calculate_composition_0919013() -> None:
 
     response = client.post(
         "/compositions/calculate",
+        headers={
+            "X-API-Key": "test-api-key",
+        },
         json={
             "composition_id": "0919013",
             "source_file_uf": "DF",

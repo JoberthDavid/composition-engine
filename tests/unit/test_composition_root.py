@@ -1,142 +1,171 @@
-from unittest.mock import patch
+from datetime import date
+from decimal import Decimal
 
 from app.composition_root import CompositionRoot
-from app.services.composition_explosion import CompositionExplosion
+from app.domain.calculation_context import CalculationContext
+from app.services.composition_calculation_service import (
+    CompositionCalculationService,
+)
+from app.services.composition_calculator import (
+    CompositionCalculator,
+)
+from app.services.composition_explosion import (
+    CompositionExplosion,
+)
+from app.services.composition_resolver import (
+    CompositionResolver,
+)
+from app.services.equipment_calculator import (
+    EquipmentCalculator,
+)
+from app.services.labor_calculator import (
+    LaborCalculator,
+)
+from app.services.material_calculator import (
+    MaterialCalculator,
+)
+from app.services.monetary_value_resolver import (
+    MonetaryValueResolver,
+)
+from app.services.operational_cost_calculator import (
+    OperationalCostCalculator,
+)
+from app.services.fic_calculator import (
+    FicCalculator,
+)
 
 
-def test_composition_root_creates_composition_explosion():
-    """
-    Garante que o CompositionRoot monta corretamente o grafo
-    de dependências do CompositionExplosion.
-    """
+def test_create_composition_explosion_returns_configured_service() -> None:
+    root = CompositionRoot(
+        composition_data_base="2021-10-01",
+    )
 
-    composition_data_base = "2021-10-01"
+    explosion = root.create_composition_explosion()
 
-    with (
-        patch(
-            "app.composition_root.CompositionApiClient"
-        ) as api_client_class,
-        patch(
-            "app.composition_root.CompositionRepository"
-        ) as composition_repository_class,
-        patch(
-            "app.composition_root.OptimizedCompositionRepository"
-        ) as optimized_repository_class,
-        patch(
-            "app.composition_root.CompositionResolver"
-        ) as resolver_class,
-        patch(
-            "app.composition_root.CompositionExplosion"
-        ) as explosion_class,
-    ):
-        api_client = api_client_class.return_value
-        composition_repository = (
-            composition_repository_class.return_value
-        )
-        optimized_repository = (
-            optimized_repository_class.return_value
-        )
-        resolver = resolver_class.return_value
-        explosion = explosion_class.return_value
+    assert isinstance(
+        explosion,
+        CompositionExplosion,
+    )
 
-        root = CompositionRoot(
-            composition_data_base=composition_data_base,
-        )
-
-        result = root.create_composition_explosion()
-
-        api_client_class.assert_called_once_with()
-
-        composition_repository_class.assert_called_once_with(
-            api_client=api_client,
-        )
-
-        optimized_repository_class.assert_called_once_with(
-            api_client=api_client,
-            composition_data_base=composition_data_base,
-        )
-
-        resolver_class.assert_called_once_with(
-            repository=composition_repository,
-            optimized_repository=optimized_repository,
-        )
-
-        explosion_class.assert_called_once_with(
-            resolver=resolver,
-        )
-
-        assert result is explosion
+    assert isinstance(
+        explosion.resolver,
+        CompositionResolver,
+    )
 
 
-def test_composition_root_preserves_composition_data_base():
-    """
-    Garante que a configuração da data-base pertence ao
-    CompositionRoot e é propagada para o repositório otimizado.
-    """
+def test_create_composition_calculation_returns_service() -> None:
+    context = CalculationContext(
+        source_file_uf="DF",
+        source_file_data_base=date(2021, 10, 1),
+        type_system="ON",
+    )
 
-    composition_data_base = "2021-10-01"
+    root = CompositionRoot(
+        composition_data_base="2021-10-01",
+    )
 
-    with (
-        patch(
-            "app.composition_root.CompositionApiClient"
-        ) as api_client_class,
-        patch(
-            "app.composition_root.CompositionRepository"
+    service = root.create_composition_calculation(
+        calculation_context=context,
+    )
+
+    assert isinstance(
+        service,
+        CompositionCalculationService,
+    )
+
+
+def test_create_composition_calculation_builds_complete_graph() -> None:
+    context = CalculationContext(
+        source_file_uf="DF",
+        source_file_data_base=date(2021, 10, 1),
+        type_system="ON",
+    )
+
+    root = CompositionRoot(
+        composition_data_base="2021-10-01",
+    )
+
+    service = root.create_composition_calculation(
+        calculation_context=context,
+    )
+
+    assert isinstance(
+        service._resolver,
+        CompositionResolver,
+    )
+
+    assert isinstance(
+        service._monetary_value_repository,
+        type(
+            service._monetary_value_repository
         ),
-        patch(
-            "app.composition_root.OptimizedCompositionRepository"
-        ) as optimized_repository_class,
-        patch(
-            "app.composition_root.CompositionResolver"
-        ),
-        patch(
-            "app.composition_root.CompositionExplosion"
-        ),
-    ):
-        api_client = api_client_class.return_value
+    )
 
-        root = CompositionRoot(
-            composition_data_base=composition_data_base,
-        )
+    calculator = service._composition_calculator
 
-        root.create_composition_explosion()
+    assert isinstance(
+        calculator,
+        CompositionCalculator,
+    )
 
-        optimized_repository_class.assert_called_once_with(
-            api_client=api_client,
-            composition_data_base=composition_data_base,
-        )
+    assert calculator.calculation_context is context
+
+    assert isinstance(
+        calculator.equipment_calculator,
+        EquipmentCalculator,
+    )
+
+    assert isinstance(
+        calculator.labor_calculator,
+        LaborCalculator,
+    )
+
+    assert isinstance(
+        calculator.material_calculator,
+        MaterialCalculator,
+    )
+
+    assert isinstance(
+        calculator.operational_cost_calculator,
+        OperationalCostCalculator,
+    )
+
+    assert isinstance(
+        calculator.fic_calculator,
+        FicCalculator,
+    )
 
 
-def test_composition_root_without_data_base_uses_default_configuration():
-    """
-    Garante que a ausência de data-base explícita não impede
-    a construção do grafo.
-    """
+def test_create_composition_calculation_preserves_calculation_context() -> None:
+    context = CalculationContext(
+        source_file_uf="DF",
+        source_file_data_base=date(2021, 10, 1),
+        type_system="ON",
+    )
 
-    with (
-        patch(
-            "app.composition_root.CompositionApiClient"
-        ) as api_client_class,
-        patch(
-            "app.composition_root.CompositionRepository"
-        ),
-        patch(
-            "app.composition_root.OptimizedCompositionRepository"
-        ) as optimized_repository_class,
-        patch(
-            "app.composition_root.CompositionResolver"
-        ),
-        patch(
-            "app.composition_root.CompositionExplosion"
-        ),
-    ):
-        api_client = api_client_class.return_value
+    root = CompositionRoot(
+        composition_data_base="2021-10-01",
+    )
 
-        root = CompositionRoot()
+    service = root.create_composition_calculation(
+        calculation_context=context,
+    )
 
-        root.create_composition_explosion()
+    calculator = service._composition_calculator
 
-        optimized_repository_class.assert_called_once_with(
-            api_client=api_client,
-            composition_data_base=None,
-        )
+    assert calculator.calculation_context is context
+
+    assert (
+        calculator.equipment_calculator.calculation_context
+        is context
+    )
+
+    assert (
+        calculator.labor_calculator.calculation_context
+        is context
+    )
+
+    assert (
+        calculator.material_calculator.calculation_context
+        is context
+    )

@@ -24,3 +24,6 @@ htmlcov/
 # Relatórios gerados pelos scripts de debug
 app/tools/debug/*_report.json
 app/tools/debug/*_report.md
+
+# Chave da API
+secrets/

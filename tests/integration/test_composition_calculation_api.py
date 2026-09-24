@@ -7,12 +7,11 @@ def test_calculate_composition_0919013() -> None:
     client = TestClient(app)
 
     response = client.post(
-        "/compositions/calculate",
+        "/compositions/0919013/calculate",
         headers={
             "X-API-Key": "test-api-key",
         },
-        json={
-            "composition_id": "0919013",
+        params={
             "source_file_uf": "DF",
             "type_system": "ON",
             "monetary_base_date": "2021-10-01",

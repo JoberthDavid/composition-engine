@@ -3,10 +3,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from app.api.dependencies import (
     create_composition_calculation_service,
     get_composition_explosion,
+    get_composition_operation_context,
 )
 from app.schemas.composition_calculation import (
-    CompositionCalculationRequest,
     CompositionCalculationResponse,
+)
+from app.schemas.composition_operation import (
+    CompositionOperationContextRequest,
 )
 from app.services.composition_calculation_service import (
     CompositionCalculationService,
@@ -28,24 +31,27 @@ def _count_nodes(node) -> int:
     )
 
 @router.post(
-    "/calculate",
+    "/{composition_code}/calculate",
     response_model=CompositionCalculationResponse,
     dependencies=[Depends(require_api_key)],
 )
 def calculate(
-    request: CompositionCalculationRequest,
+    composition_code: str,
+    context: CompositionOperationContextRequest = Depends(
+        get_composition_operation_context,
+    ),
     service: CompositionCalculationService = Depends(
         create_composition_calculation_service,
     ),
 ) -> CompositionCalculationResponse:
 
     result = service.calculate(
-        composition_id=request.composition_id,
+        composition_id=composition_code,
     )
 
     return CompositionCalculationResponse(
         composition_id=result.composition_code,
-        reference_base_date=request.reference_base_date,
+        reference_base_date=context.reference_base_date,
         unit_cost=result.composition_unit_cost,
     )
 

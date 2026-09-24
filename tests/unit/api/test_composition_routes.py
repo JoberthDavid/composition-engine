@@ -44,10 +44,9 @@ def test_calculate_returns_public_contract() -> None:
     client = TestClient(app)
 
     response = client.post(
-        "/compositions/calculate",
+        "/compositions/0919013/calculate",
         headers=API_HEADERS,
-        json={
-            "composition_id": "0919013",
+        params={
             "source_file_uf": "DF",
             "type_system": "ON",
             "monetary_base_date": "2021-10-01",
@@ -67,8 +66,7 @@ def test_calculate_returns_public_contract() -> None:
         composition_id="0919013",
     )
 
-
-def test_calculate_rejects_missing_composition_id() -> None:
+def test_calculate_rejects_missing_source_file_uf() -> None:
     service = Mock()
 
     app = create_test_app(service)
@@ -76,10 +74,9 @@ def test_calculate_rejects_missing_composition_id() -> None:
     client = TestClient(app)
 
     response = client.post(
-        "/compositions/calculate",
+        "/compositions/0919013/calculate",
         headers=API_HEADERS,
-        json={
-            "source_file_uf": "DF",
+        params={
             "type_system": "ON",
             "monetary_base_date": "2021-10-01",
             "reference_base_date": "2021-10-01",
@@ -99,10 +96,9 @@ def test_calculate_rejects_invalid_monetary_base_date() -> None:
     client = TestClient(app)
 
     response = client.post(
-        "/compositions/calculate",
+        "/compositions/0919013/calculate",
         headers=API_HEADERS,
-        json={
-            "composition_id": "0919013",
+        params={
             "source_file_uf": "DF",
             "type_system": "ON",
             "monetary_base_date": "invalid",
@@ -114,6 +110,26 @@ def test_calculate_rejects_invalid_monetary_base_date() -> None:
 
     service.calculate.assert_not_called()
 
+def test_calculate_rejects_missing_type_system() -> None:
+    service = Mock()
+
+    app = create_test_app(service)
+
+    client = TestClient(app)
+
+    response = client.post(
+        "/compositions/0919013/calculate",
+        headers=API_HEADERS,
+        params={
+            "source_file_uf": "DF",
+            "monetary_base_date": "2021-10-01",
+            "reference_base_date": "2021-10-01",
+        },
+    )
+
+    assert response.status_code == 422
+
+    service.calculate.assert_not_called()
 
 def test_calculate_rejects_missing_source_file_uf() -> None:
     service = Mock()
@@ -123,10 +139,9 @@ def test_calculate_rejects_missing_source_file_uf() -> None:
     client = TestClient(app)
 
     response = client.post(
-        "/compositions/calculate",
+        "/compositions/0919013/calculate",
         headers=API_HEADERS,
-        json={
-            "composition_id": "0919013",
+        params={
             "type_system": "ON",
             "monetary_base_date": "2021-10-01",
             "reference_base_date": "2021-10-01",
@@ -179,10 +194,9 @@ def test_calculate_calls_service_with_composition_id() -> None:
     client = TestClient(app)
 
     response = client.post(
-        "/compositions/calculate",
+        "/compositions/0919013/calculate",
         headers=API_HEADERS,
-        json={
-            "composition_id": "0919013",
+        params={
             "source_file_uf": "DF",
             "type_system": "ON",
             "monetary_base_date": "2021-10-01",
@@ -206,10 +220,9 @@ def test_calculate_returns_expected_response() -> None:
     client = TestClient(app)
 
     response = client.post(
-        "/compositions/calculate",
+        "/compositions/0919013/calculate",
         headers=API_HEADERS,
-        json={
-            "composition_id": "0919013",
+        params={
             "source_file_uf": "DF",
             "type_system": "ON",
             "monetary_base_date": "2021-10-01",
@@ -225,8 +238,7 @@ def test_calculate_returns_expected_response() -> None:
         "unit_cost": "800.00",
     }
 
-
-def test_calculate_rejects_invalid_request() -> None:
+def test_calculate_rejects_missing_reference_base_date() -> None:
     service = FakeCompositionCalculationService()
 
     app = _build_app(service)
@@ -234,10 +246,9 @@ def test_calculate_rejects_invalid_request() -> None:
     client = TestClient(app)
 
     response = client.post(
-        "/compositions/calculate",
+        "/compositions/0919013/calculate",
         headers=API_HEADERS,
-        json={
-            "composition_id": "0919013",
+        params={
             "source_file_uf": "DF",
             "type_system": "ON",
             "monetary_base_date": "2021-10-01",

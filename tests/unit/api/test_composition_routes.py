@@ -49,6 +49,7 @@ def test_calculate_returns_public_contract() -> None:
         params={
             "source_file_uf": "DF",
             "type_system": "ON",
+            "methodology": "SC",
             "monetary_base_date": "2021-10-01",
             "reference_base_date": "2021-10-01",
         },
@@ -78,6 +79,7 @@ def test_calculate_rejects_missing_source_file_uf() -> None:
         headers=API_HEADERS,
         params={
             "type_system": "ON",
+            "methodology": "SC",
             "monetary_base_date": "2021-10-01",
             "reference_base_date": "2021-10-01",
         },
@@ -101,6 +103,7 @@ def test_calculate_rejects_invalid_monetary_base_date() -> None:
         params={
             "source_file_uf": "DF",
             "type_system": "ON",
+            "methodology": "SC",
             "monetary_base_date": "invalid",
             "reference_base_date": "2021-10-01",
         },
@@ -122,6 +125,7 @@ def test_calculate_rejects_missing_type_system() -> None:
         headers=API_HEADERS,
         params={
             "source_file_uf": "DF",
+            "methodology": "SC",
             "monetary_base_date": "2021-10-01",
             "reference_base_date": "2021-10-01",
         },
@@ -143,6 +147,7 @@ def test_calculate_rejects_missing_source_file_uf() -> None:
         headers=API_HEADERS,
         params={
             "type_system": "ON",
+            "methodology": "SC",
             "monetary_base_date": "2021-10-01",
             "reference_base_date": "2021-10-01",
         },
@@ -199,6 +204,7 @@ def test_calculate_calls_service_with_composition_id() -> None:
         params={
             "source_file_uf": "DF",
             "type_system": "ON",
+            "methodology": "SC",
             "monetary_base_date": "2021-10-01",
             "reference_base_date": "2021-10-01",
         },
@@ -225,6 +231,7 @@ def test_calculate_returns_expected_response() -> None:
         params={
             "source_file_uf": "DF",
             "type_system": "ON",
+            "methodology": "SC",
             "monetary_base_date": "2021-10-01",
             "reference_base_date": "2021-10-01",
         },
@@ -250,9 +257,30 @@ def test_calculate_rejects_missing_reference_base_date() -> None:
         headers=API_HEADERS,
         params={
             "source_file_uf": "DF",
+            "methodology": "SC",
             "type_system": "ON",
             "monetary_base_date": "2021-10-01",
         },
     )
 
     assert response.status_code == 422
+
+def test_calculate_rejects_missing_methodology() -> None:
+    service = Mock()
+
+    app = create_test_app(service)
+    client = TestClient(app)
+
+    response = client.post(
+        "/compositions/0919013/calculate",
+        headers=API_HEADERS,
+        params={
+            "source_file_uf": "DF",
+            "type_system": "ON",
+            "monetary_base_date": "2021-10-01",
+            "reference_base_date": "2021-10-01",
+        },
+    )
+
+    assert response.status_code == 422
+    service.calculate.assert_not_called()

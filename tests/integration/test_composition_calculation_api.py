@@ -13,6 +13,7 @@ def test_calculate_composition_0919013() -> None:
         },
         params={
             "source_file_uf": "DF",
+            "methodology": "SC",
             "type_system": "ON",
             "monetary_base_date": "2021-10-01",
             "reference_base_date": "2021-10-01",

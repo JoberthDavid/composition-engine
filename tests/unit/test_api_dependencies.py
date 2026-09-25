@@ -16,10 +16,10 @@ def _build_request() -> CompositionCalculationRequest:
         composition_id="0919013",
         source_file_uf="DF",
         type_system="ON",
+        methodology="SC",
         monetary_base_date=date(2021, 10, 1),
         reference_base_date=date(2021, 10, 1),
     )
-
 
 def test_factory_passes_source_file_uf_to_calculation_context(
     monkeypatch,
@@ -45,6 +45,7 @@ def test_factory_passes_source_file_uf_to_calculation_context(
             captured["context"] = calculation_context
             return FakeService()
 
+
     monkeypatch.setattr(
         "app.api.dependencies.CompositionRoot",
         FakeRoot,
@@ -58,7 +59,7 @@ def test_factory_passes_source_file_uf_to_calculation_context(
 
     context = captured["context"]
 
-    assert context.source_file_uf == "DF"
+    assert captured["context"].source_file_uf == "DF"
 
 
 def test_factory_passes_monetary_base_date_to_calculation_context(
@@ -123,6 +124,7 @@ def test_factory_passes_reference_base_date_to_composition_root(
             self,
             calculation_context,
         ):
+            captured["context"] = calculation_context
             return FakeService()
 
     monkeypatch.setattr(
@@ -141,10 +143,11 @@ def test_factory_passes_reference_base_date_to_composition_root(
         == "2021-10-01"
     )
 
-
 def test_factory_returns_composition_calculation_service(
     monkeypatch,
 ) -> None:
+    captured = {}
+
     class FakeRoot:
         def __init__(
             self,
@@ -156,6 +159,8 @@ def test_factory_returns_composition_calculation_service(
             self,
             calculation_context,
         ):
+            captured["context"] = calculation_context
+
             return CompositionCalculationService(
                 resolver=None,
                 monetary_value_repository=None,
@@ -177,4 +182,43 @@ def test_factory_returns_composition_calculation_service(
     assert isinstance(
         service,
         CompositionCalculationService,
+    )
+
+
+def test_factory_passes_methodology_to_calculation_context(
+    monkeypatch,
+) -> None:
+    captured = {}
+
+    class FakeService:
+        pass
+
+    class FakeRoot:
+        def __init__(
+            self,
+            composition_data_base,
+        ) -> None:
+            pass
+
+        def create_composition_calculation(
+            self,
+            calculation_context,
+        ):
+            captured["context"] = calculation_context
+            return FakeService()
+
+    monkeypatch.setattr(
+        "app.api.dependencies.CompositionRoot",
+        FakeRoot,
+    )
+
+    request = _build_request()
+
+    create_composition_calculation_service(
+        request
+    )
+
+    assert (
+        captured["context"].methodology
+        == "SC"
     )

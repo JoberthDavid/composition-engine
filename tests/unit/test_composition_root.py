@@ -1,6 +1,9 @@
 from datetime import date
 from decimal import Decimal
 
+from app.domain.composition_operation_context import (
+    CompositionOperationContext,
+)
 from app.composition_root import CompositionRoot
 from app.domain.calculation_context import CalculationContext
 from app.services.composition_calculation_service import (
@@ -40,17 +43,27 @@ def test_create_composition_explosion_returns_configured_service() -> None:
         composition_data_base="2021-10-01",
     )
 
-    explosion = root.create_composition_explosion()
+    context = CompositionOperationContext(
+        source_file_uf="DF",
+        type_system="ON",
+        methodology="SC",
+        monetary_base_date=date(2021, 10, 1),
+        reference_base_date=date(2021, 10, 1),
+    )
 
+    explosion = root.create_composition_explosion(
+        context=context,
+    )
+    assert isinstance(
+        explosion.resolver,
+        CompositionResolver,
+    )
     assert isinstance(
         explosion,
         CompositionExplosion,
     )
 
-    assert isinstance(
-        explosion.resolver,
-        CompositionResolver,
-    )
+    assert explosion.context is context
 
 
 def test_create_composition_calculation_returns_service() -> None:

@@ -1,4 +1,5 @@
 from datetime import date
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -12,6 +13,7 @@ class CompositionOperationContextRequest(BaseModel):
     """
 
     source_file_uf: str
-    type_system: str
+    type_system: Literal["ON", "DS", "NA"]
+    methodology: Literal["SC", "SN"]
     monetary_base_date: date
     reference_base_date: date

@@ -9,8 +9,8 @@ from app.api.schemas import CompositionExplosionResponse
 from app.schemas.composition_calculation import (
     CompositionCalculationResponse,
 )
-from app.schemas.composition_operation import (
-    CompositionOperationContextRequest,
+from app.domain.composition_operation_context import (
+    CompositionOperationContext,
 )
 from app.services.composition_calculation_service import (
     CompositionCalculationService,
@@ -38,7 +38,7 @@ def _count_nodes(node) -> int:
 )
 def calculate(
     composition_code: str,
-    context: CompositionOperationContextRequest = Depends(
+    context: CompositionOperationContext = Depends(
         get_composition_operation_context,
     ),
     service: CompositionCalculationService = Depends(

@@ -94,6 +94,7 @@ def _build_calculation_context() -> CalculationContext:
         source_file_uf="DF",
         source_file_data_base=MONETARY_DATA_BASE,
         type_system="ON",
+        methodology="SC"
     )
 
 def _load_monetary_cache(

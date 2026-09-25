@@ -1,28 +1,20 @@
 from datetime import date
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel
-
 
 class CompositionCalculationRequest(BaseModel):
     """
     Contrato HTTP para solicitação do cálculo de uma composição.
-
-    reference_base_date:
-        Base de dados estrutural da composição.
-
-    monetary_base_date:
-        Data-base utilizada para seleção dos valores monetários.
-
-    source_file_uf:
-        UF da base de valores monetários.
     """
-
     composition_id: str
     source_file_uf: str
+    methodology: Literal["SC", "SN"]
     type_system: str
     monetary_base_date: date
     reference_base_date: date
+
 
 
 class CompositionCalculationResponse(BaseModel):

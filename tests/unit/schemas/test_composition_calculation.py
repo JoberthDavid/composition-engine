@@ -15,6 +15,7 @@ def test_request_accepts_valid_data() -> None:
         composition_id="0919013",
         source_file_uf="DF",
         type_system="ON",
+        methodology="SC",
         monetary_base_date="2021-10-01",
         reference_base_date="2021-10-01",
     )

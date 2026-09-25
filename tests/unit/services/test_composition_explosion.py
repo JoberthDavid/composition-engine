@@ -6,6 +6,11 @@ CompositionExplosionResult,
 from app.services.composition_explosion import (
 CompositionExplosion,
 )
+from datetime import date
+
+from app.domain.composition_operation_context import (
+    CompositionOperationContext,
+)
 
 
 def test_composition_explosion_orchestrates_optimized_resolution_and_aggregation():
@@ -51,12 +56,20 @@ def test_composition_explosion_orchestrates_optimized_resolution_and_aggregation
         inputs
     )
 
+    context = CompositionOperationContext(
+        source_file_uf="DF",
+        type_system="ON",
+        methodology="SC",
+        monetary_base_date=date(2021, 10, 1),
+        reference_base_date=date(2021, 10, 1),
+    )
+
     explosion = CompositionExplosion(
         resolver=resolver,
+        context=context,
         composition_aggregator=composition_aggregator,
         input_aggregator=input_aggregator,
     )
-
     result = explosion.explode(code)
 
     resolver.resolve_tree_optimized.assert_called_once_with(
@@ -81,6 +94,7 @@ def test_composition_explosion_orchestrates_optimized_resolution_and_aggregation
     assert result.root_node is root_node
     assert result.compositions is compositions
     assert result.inputs is inputs
+    assert explosion.context is context
 
 def test_composition_explosion_uses_injected_resolver():
     """
@@ -102,12 +116,20 @@ def test_composition_explosion_uses_injected_resolver():
     composition_aggregator.aggregate.return_value = []
     input_aggregator.aggregate.return_value = []
 
+    context = CompositionOperationContext(
+        source_file_uf="DF",
+        type_system="ON",
+        methodology="SC",
+        monetary_base_date=date(2021, 10, 1),
+        reference_base_date=date(2021, 10, 1),
+    )
+
     explosion = CompositionExplosion(
         resolver=resolver,
+        context=context,
         composition_aggregator=composition_aggregator,
         input_aggregator=input_aggregator,
     )
-
     result = explosion.explode(
         "0919013",
     )
@@ -127,3 +149,4 @@ def test_composition_explosion_uses_injected_resolver():
     )
 
     assert result.root_node is root_node
+    assert explosion.context is context

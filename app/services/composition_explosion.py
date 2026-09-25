@@ -10,7 +10,9 @@ from app.services.composition_resolver import (
 from app.services.input_aggregator import (
     InputAggregator,
 )
-
+from app.domain.composition_operation_context import (
+    CompositionOperationContext,
+)
 
 class CompositionExplosion:
     """
@@ -31,6 +33,7 @@ class CompositionExplosion:
     def __init__(
         self,
         resolver: CompositionResolver,
+        context: CompositionOperationContext,
         composition_aggregator: (
             CompositionAggregator | None
         ) = None,
@@ -38,8 +41,8 @@ class CompositionExplosion:
             InputAggregator | None
         ) = None,
     ) -> None:
-
         self.resolver = resolver
+        self.context = context
 
         self.composition_aggregator = (
             composition_aggregator
@@ -65,7 +68,6 @@ class CompositionExplosion:
         Retorna a árvore de composições, as composições
         agregadas e os insumos agregados.
         """
-
         root_node = self.resolver.resolve_tree_optimized(
             composition_code=code,
         )

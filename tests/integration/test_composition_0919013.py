@@ -72,6 +72,7 @@ def test_composition_0919013_regression() -> None:
     )
 
     calculation_context = CalculationContext(
+        methodology="SC",
         source_file_uf="DF",
         source_file_data_base=MONETARY_DATA_BASE,
         type_system="ON",

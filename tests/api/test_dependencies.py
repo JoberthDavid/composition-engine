@@ -11,6 +11,7 @@ def test_get_composition_explosion():
     context = CompositionOperationContextRequest(
         source_file_uf="DF",
         type_system="ON",
+        methodology="SC",
         monetary_base_date=date(2021, 10, 1),
         reference_base_date=date(2021, 10, 1),
     )
@@ -37,9 +38,13 @@ def test_get_composition_explosion_passes_reference_base_date_to_root(
 
         def create_composition_explosion(
             self,
+            context,
         ):
+            captured["context"] = context
+
             return CompositionExplosion(
                 resolver=None,
+                context=context,
             )
 
     monkeypatch.setattr(
@@ -50,6 +55,7 @@ def test_get_composition_explosion_passes_reference_base_date_to_root(
     context = CompositionOperationContextRequest(
         source_file_uf="DF",
         type_system="ON",
+        methodology="SC",
         monetary_base_date=date(2021, 10, 1),
         reference_base_date=date(2021, 10, 1),
     )
@@ -62,8 +68,4 @@ def test_get_composition_explosion_passes_reference_base_date_to_root(
         explosion,
         CompositionExplosion,
     )
-
-    assert (
-        captured["composition_data_base"]
-        == "2021-10-01"
-    )
+    assert captured["context"] is context

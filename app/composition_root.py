@@ -47,6 +47,9 @@ from app.services.monetary_value_resolver import (
 from app.services.operational_cost_calculator import (
     OperationalCostCalculator,
 )
+from app.domain.composition_operation_context import (
+    CompositionOperationContext,
+)
 
 
 class CompositionRoot:
@@ -68,6 +71,7 @@ class CompositionRoot:
 
     def create_composition_explosion(
         self,
+        context: CompositionOperationContext,
     ) -> CompositionExplosion:
         """
         Cria um CompositionExplosion completamente configurado.
@@ -95,6 +99,7 @@ class CompositionRoot:
 
         return CompositionExplosion(
             resolver=resolver,
+            context=context,
         )
 
     def create_composition_calculation(

@@ -5,6 +5,7 @@ from app.api.dependencies import (
     get_composition_explosion,
     get_composition_operation_context,
 )
+from app.api.schemas import CompositionExplosionResponse
 from app.schemas.composition_calculation import (
     CompositionCalculationResponse,
 )
@@ -58,6 +59,7 @@ def calculate(
 
 @router.get(
     "/{composition_code}/explosion",
+    response_model=CompositionExplosionResponse,
     dependencies=[Depends(require_api_key)],
 )
 def explode_composition(

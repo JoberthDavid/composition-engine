@@ -5,9 +5,7 @@ from fastapi import Depends
 
 from app.composition_root import CompositionRoot
 from app.domain.calculation_context import CalculationContext
-from app.schemas.composition_calculation import (
-    CompositionCalculationRequest,
-)
+
 from app.services.composition_calculation_service import (
     CompositionCalculationService,
 )
@@ -18,15 +16,6 @@ from app.schemas.composition_operation import (
 )
 
 
-def get_composition_explosion() -> CompositionExplosion:
-    """
-    Dependency responsável por construir o serviço de
-    explosão de composições.
-    """
-
-    root = CompositionRoot()
-
-    return root.create_composition_explosion()
 
 
 def get_composition_operation_context(
@@ -49,6 +38,27 @@ def get_composition_operation_context(
         monetary_base_date=monetary_base_date,
         reference_base_date=reference_base_date,
     )
+
+def get_composition_explosion(
+    context: CompositionOperationContextRequest = Depends(
+        get_composition_operation_context,
+    ),
+) -> CompositionExplosion:
+    """
+    Constrói o serviço de explosão a partir do contexto
+    recebido pela API.
+
+    A referência estrutural da composição é definida por
+    reference_base_date.
+    """
+
+    root = CompositionRoot(
+        composition_data_base=(
+            context.reference_base_date.isoformat()
+        ),
+    )
+
+    return root.create_composition_explosion()
 
 def create_composition_calculation_service(
     context: CompositionOperationContextRequest = Depends(

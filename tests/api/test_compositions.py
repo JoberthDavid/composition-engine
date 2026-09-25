@@ -17,6 +17,13 @@ from app.main import app
 
 client = TestClient(app)
 
+EXPLOSION_PARAMS = {
+    "source_file_uf": "DF",
+    "type_system": "ON",
+    "monetary_base_date": "2021-10-01",
+    "reference_base_date": "2021-10-01",
+}
+
 def create_explosion_result() -> CompositionExplosionResult:
     composition = Composition(
         id=1,
@@ -80,6 +87,7 @@ def test_explode_composition():
     try:
         response = client.get(
             "/compositions/4011209/explosion",
+            params=EXPLOSION_PARAMS,
             headers={
                 "X-API-Key": "test-api-key",
             },
@@ -136,6 +144,7 @@ def test_explode_composition_returns_404_when_composition_is_not_found():
     try:
         response = client.get(
             "/compositions/9999999/explosion",
+            params=EXPLOSION_PARAMS,
             headers={
                 "X-API-Key": "test-api-key",
             },
@@ -170,9 +179,10 @@ def test_explode_composition_propagates_unexpected_error():
         try:
             client.get(
                 "/compositions/4011209/explosion",
-            headers={
-                "X-API-Key": "test-api-key",
-            },
+                params=EXPLOSION_PARAMS,
+                headers={
+                    "X-API-Key": "test-api-key",
+                },
             )
             assert False, "Era esperado RuntimeError"
         except RuntimeError as exc:

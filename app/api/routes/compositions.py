@@ -57,17 +57,17 @@ def calculate(
 
 
 @router.get(
-    "/{composition_id}/explosion",
+    "/{composition_code}/explosion",
     dependencies=[Depends(require_api_key)],
 )
 def explode_composition(
-    composition_id: str,
+    composition_code: str,
     explosion: CompositionExplosion = Depends(
         get_composition_explosion,
     ),
 ):
     try:
-        result = explosion.explode(composition_id)
+        result = explosion.explode(composition_code)
 
     except ValueError as exc:
         raise HTTPException(
@@ -100,7 +100,9 @@ def explode_composition(
                 "unit": item.unit,
                 "quantity": str(item.quantity),
                 "productive_quantity": str(item.productive_quantity),
-                "unproductive_quantity": str(item.unproductive_quantity),
+                "unproductive_quantity": str(
+                    item.unproductive_quantity
+                ),
                 "proprietary_item": item.proprietary_item,
             }
             for item in result.inputs

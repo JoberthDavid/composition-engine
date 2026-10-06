@@ -12,7 +12,9 @@ class ConfigurationError(RuntimeError):
 @dataclass(frozen=True)
 class Settings:
     scraper_api_base_url: str
-    composition_engine_api_key: str
+    manifold_jwks_url: str
+    manifold_jwt_issuer: str
+    manifold_jwt_audience: str
 
 
 @lru_cache(maxsize=1)
@@ -21,8 +23,18 @@ def get_settings() -> Settings:
         "SCRAPER_API_BASE_URL"
     )
 
-    composition_engine_api_key = getenv(
-        "COMPOSITION_ENGINE_API_KEY"
+    manifold_jwks_url = getenv(
+        "MANIFOLD_JWKS_URL"
+    )
+
+    manifold_jwt_issuer = getenv(
+        "MANIFOLD_JWT_ISSUER",
+        "manifold-api",
+    )
+
+    manifold_jwt_audience = getenv(
+        "MANIFOLD_JWT_AUDIENCE",
+        "composition-engine",
     )
 
     missing = []
@@ -30,8 +42,8 @@ def get_settings() -> Settings:
     if not scraper_api_base_url:
         missing.append("SCRAPER_API_BASE_URL")
 
-    if not composition_engine_api_key:
-        missing.append("COMPOSITION_ENGINE_API_KEY")
+    if not manifold_jwks_url:
+        missing.append("MANIFOLD_JWKS_URL")
 
     if missing:
         raise ConfigurationError(
@@ -41,5 +53,7 @@ def get_settings() -> Settings:
 
     return Settings(
         scraper_api_base_url=scraper_api_base_url.rstrip("/"),
-        composition_engine_api_key=composition_engine_api_key,
+        manifold_jwks_url=manifold_jwks_url.rstrip("/"),
+        manifold_jwt_issuer=manifold_jwt_issuer,
+        manifold_jwt_audience=manifold_jwt_audience,
     )

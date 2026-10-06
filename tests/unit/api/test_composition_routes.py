@@ -11,9 +11,7 @@ from app.api.routes.compositions import router
 from app.api.dependencies import (
     create_composition_calculation_service,
 )
-API_HEADERS = {
-    "X-API-Key": "test-api-key",
-}
+
 
 def create_test_app(
     service: Mock,
@@ -29,7 +27,7 @@ def create_test_app(
     return app
 
 
-def test_calculate_returns_public_contract() -> None:
+def test_calculate_returns_public_contract(jwt_headers) -> None:
     service = Mock()
 
     service.calculate.return_value = Mock(
@@ -45,7 +43,7 @@ def test_calculate_returns_public_contract() -> None:
 
     response = client.post(
         "/compositions/0919013/calculate",
-        headers=API_HEADERS,
+        headers=jwt_headers(["composition:calculate"]),
         params={
             "source_file_uf": "DF",
             "type_system": "ON",
@@ -67,7 +65,7 @@ def test_calculate_returns_public_contract() -> None:
         composition_id="0919013",
     )
 
-def test_calculate_rejects_missing_source_file_uf() -> None:
+def test_calculate_rejects_missing_source_file_uf(jwt_headers) -> None:
     service = Mock()
 
     app = create_test_app(service)
@@ -76,7 +74,7 @@ def test_calculate_rejects_missing_source_file_uf() -> None:
 
     response = client.post(
         "/compositions/0919013/calculate",
-        headers=API_HEADERS,
+        headers=jwt_headers(["composition:calculate"]),
         params={
             "type_system": "ON",
             "methodology": "SC",
@@ -90,7 +88,7 @@ def test_calculate_rejects_missing_source_file_uf() -> None:
     service.calculate.assert_not_called()
 
 
-def test_calculate_rejects_invalid_monetary_base_date() -> None:
+def test_calculate_rejects_invalid_monetary_base_date(jwt_headers) -> None:
     service = Mock()
 
     app = create_test_app(service)
@@ -99,7 +97,7 @@ def test_calculate_rejects_invalid_monetary_base_date() -> None:
 
     response = client.post(
         "/compositions/0919013/calculate",
-        headers=API_HEADERS,
+        headers=jwt_headers(["composition:calculate"]),
         params={
             "source_file_uf": "DF",
             "type_system": "ON",
@@ -113,7 +111,7 @@ def test_calculate_rejects_invalid_monetary_base_date() -> None:
 
     service.calculate.assert_not_called()
 
-def test_calculate_rejects_missing_type_system() -> None:
+def test_calculate_rejects_missing_type_system(jwt_headers) -> None:
     service = Mock()
 
     app = create_test_app(service)
@@ -122,7 +120,7 @@ def test_calculate_rejects_missing_type_system() -> None:
 
     response = client.post(
         "/compositions/0919013/calculate",
-        headers=API_HEADERS,
+        headers=jwt_headers(["composition:calculate"]),
         params={
             "source_file_uf": "DF",
             "methodology": "SC",
@@ -135,7 +133,7 @@ def test_calculate_rejects_missing_type_system() -> None:
 
     service.calculate.assert_not_called()
 
-def test_calculate_rejects_missing_source_file_uf() -> None:
+def test_calculate_rejects_missing_source_file_uf(jwt_headers) -> None:
     service = Mock()
 
     app = create_test_app(service)
@@ -144,7 +142,7 @@ def test_calculate_rejects_missing_source_file_uf() -> None:
 
     response = client.post(
         "/compositions/0919013/calculate",
-        headers=API_HEADERS,
+        headers=jwt_headers(["composition:calculate"]),
         params={
             "type_system": "ON",
             "methodology": "SC",
@@ -191,7 +189,7 @@ class FakeCompositionCalculationService:
         )
 
 
-def test_calculate_calls_service_with_composition_id() -> None:
+def test_calculate_calls_service_with_composition_id(jwt_headers) -> None:
     service = FakeCompositionCalculationService()
 
     app = _build_app(service)
@@ -200,7 +198,7 @@ def test_calculate_calls_service_with_composition_id() -> None:
 
     response = client.post(
         "/compositions/0919013/calculate",
-        headers=API_HEADERS,
+        headers=jwt_headers(["composition:calculate"]),
         params={
             "source_file_uf": "DF",
             "type_system": "ON",
@@ -218,7 +216,7 @@ def test_calculate_calls_service_with_composition_id() -> None:
     )
 
 
-def test_calculate_returns_expected_response() -> None:
+def test_calculate_returns_expected_response(jwt_headers) -> None:
     service = FakeCompositionCalculationService()
 
     app = _build_app(service)
@@ -227,7 +225,7 @@ def test_calculate_returns_expected_response() -> None:
 
     response = client.post(
         "/compositions/0919013/calculate",
-        headers=API_HEADERS,
+        headers=jwt_headers(["composition:calculate"]),
         params={
             "source_file_uf": "DF",
             "type_system": "ON",
@@ -245,7 +243,7 @@ def test_calculate_returns_expected_response() -> None:
         "unit_cost": "800.00",
     }
 
-def test_calculate_rejects_missing_reference_base_date() -> None:
+def test_calculate_rejects_missing_reference_base_date(jwt_headers) -> None:
     service = FakeCompositionCalculationService()
 
     app = _build_app(service)
@@ -254,7 +252,7 @@ def test_calculate_rejects_missing_reference_base_date() -> None:
 
     response = client.post(
         "/compositions/0919013/calculate",
-        headers=API_HEADERS,
+        headers=jwt_headers(["composition:calculate"]),
         params={
             "source_file_uf": "DF",
             "methodology": "SC",
@@ -265,7 +263,7 @@ def test_calculate_rejects_missing_reference_base_date() -> None:
 
     assert response.status_code == 422
 
-def test_calculate_rejects_missing_methodology() -> None:
+def test_calculate_rejects_missing_methodology(jwt_headers) -> None:
     service = Mock()
 
     app = create_test_app(service)
@@ -273,7 +271,7 @@ def test_calculate_rejects_missing_methodology() -> None:
 
     response = client.post(
         "/compositions/0919013/calculate",
-        headers=API_HEADERS,
+        headers=jwt_headers(["composition:calculate"]),
         params={
             "source_file_uf": "DF",
             "type_system": "ON",

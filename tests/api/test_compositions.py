@@ -76,7 +76,7 @@ def create_explosion_result() -> CompositionExplosionResult:
     )
 
 
-def test_explode_composition():
+def test_explode_composition(jwt_headers):
     explosion = Mock()
     explosion.explode.return_value = create_explosion_result()
 
@@ -88,9 +88,7 @@ def test_explode_composition():
         response = client.get(
             "/compositions/4011209/explosion",
             params=EXPLOSION_PARAMS,
-            headers={
-                "X-API-Key": "test-api-key",
-            },
+            headers=jwt_headers(["composition:explosion"]),
         )
         assert response.status_code == 200
 
@@ -131,7 +129,7 @@ def test_explode_composition():
     finally:
         app.dependency_overrides.clear()
 
-def test_explode_composition_returns_404_when_composition_is_not_found():
+def test_explode_composition_returns_404_when_composition_is_not_found(jwt_headers):
     explosion = Mock()
     explosion.explode.side_effect = ValueError(
         "Composition not found: 9999999"
@@ -145,9 +143,7 @@ def test_explode_composition_returns_404_when_composition_is_not_found():
         response = client.get(
             "/compositions/9999999/explosion",
             params=EXPLOSION_PARAMS,
-            headers={
-                "X-API-Key": "test-api-key",
-            },
+            headers=jwt_headers(["composition:explosion"]),
         )
 
         assert response.status_code == 404
@@ -165,7 +161,7 @@ def test_explode_composition_returns_404_when_composition_is_not_found():
             None,
         )
 
-def test_explode_composition_propagates_unexpected_error():
+def test_explode_composition_propagates_unexpected_error(jwt_headers):
     explosion = Mock()
     explosion.explode.side_effect = RuntimeError(
         "Erro interno inesperado"
@@ -180,9 +176,7 @@ def test_explode_composition_propagates_unexpected_error():
             client.get(
                 "/compositions/4011209/explosion",
                 params=EXPLOSION_PARAMS,
-                headers={
-                    "X-API-Key": "test-api-key",
-                },
+                headers=jwt_headers(["composition:explosion"]),
             )
             assert False, "Era esperado RuntimeError"
         except RuntimeError as exc:

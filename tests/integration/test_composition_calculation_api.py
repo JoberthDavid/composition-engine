@@ -3,14 +3,12 @@ from fastapi.testclient import TestClient
 from app.main import app
 
 
-def test_calculate_composition_0919013() -> None:
+def test_calculate_composition_0919013(jwt_headers) -> None:
     client = TestClient(app)
 
     response = client.post(
         "/compositions/0919013/calculate",
-        headers={
-            "X-API-Key": "test-api-key",
-        },
+        headers=jwt_headers(["composition:calculate"]),
         params={
             "source_file_uf": "DF",
             "methodology": "SC",

@@ -33,7 +33,7 @@ COMPOSITION_CODES = [
     "4815671",
 ]
 
-DATA_BASE = "2021-10-01"
+DATA_BASE = "2023-01-01"
 
 
 def test_get_composition_activities_from_railway():

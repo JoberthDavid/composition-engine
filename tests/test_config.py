@@ -8,11 +8,11 @@ from app.config import (
 )
 
 
-def test_get_settings_requires_scraper_api_base_url(
+def test_get_settings_requires_manifold_api_base_url(
     monkeypatch,
 ):
     monkeypatch.delenv(
-        "SCRAPER_API_BASE_URL",
+        "MANIFOLD_API_BASE_URL",
         raising=False,
     )
     monkeypatch.setenv(
@@ -24,7 +24,7 @@ def test_get_settings_requires_scraper_api_base_url(
 
     with pytest.raises(
         ConfigurationError,
-        match="SCRAPER_API_BASE_URL",
+        match="MANIFOLD_API_BASE_URL",
     ):
         get_settings()
 
@@ -33,8 +33,8 @@ def test_get_settings_requires_manifold_jwks_url(
     monkeypatch,
 ):
     monkeypatch.setenv(
-        "SCRAPER_API_BASE_URL",
-        "http://scraper",
+        "MANIFOLD_API_BASE_URL",
+        "http://manifold",
     )
     monkeypatch.delenv(
         "MANIFOLD_JWKS_URL",
@@ -54,8 +54,12 @@ def test_get_settings_loads_jwt_configuration(
     monkeypatch,
 ):
     monkeypatch.setenv(
-        "SCRAPER_API_BASE_URL",
-        "http://scraper/",
+        "MANIFOLD_API_BASE_URL",
+        "http://manifold/",
+    )
+    monkeypatch.setenv(
+        "MANIFOLD_API_TOKEN",
+        "test-token",
     )
     monkeypatch.setenv(
         "MANIFOLD_JWKS_URL",
@@ -75,8 +79,13 @@ def test_get_settings_loads_jwt_configuration(
     settings = get_settings()
 
     assert (
-        settings.scraper_api_base_url
-        == "http://scraper"
+        settings.manifold_api_base_url
+        == "http://manifold"
+    )
+
+    assert (
+        settings.manifold_api_token
+        == "test-token"
     )
 
     assert (
@@ -99,8 +108,8 @@ def test_jwt_issuer_has_default_value(
     monkeypatch,
 ):
     monkeypatch.setenv(
-        "SCRAPER_API_BASE_URL",
-        "http://scraper",
+        "MANIFOLD_API_BASE_URL",
+        "http://manifold",
     )
     monkeypatch.setenv(
         "MANIFOLD_JWKS_URL",
@@ -130,8 +139,8 @@ def test_settings_do_not_expose_legacy_api_key(
     monkeypatch,
 ):
     monkeypatch.setenv(
-        "SCRAPER_API_BASE_URL",
-        "http://scraper",
+        "MANIFOLD_API_BASE_URL",
+        "http://manifold",
     )
     monkeypatch.setenv(
         "MANIFOLD_JWKS_URL",

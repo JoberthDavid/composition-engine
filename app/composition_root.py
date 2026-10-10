@@ -50,6 +50,9 @@ from app.services.operational_cost_calculator import (
 from app.domain.composition_operation_context import (
     CompositionOperationContext,
 )
+from app.infrastructure.manifold_api_client import (
+    ManifoldApiClient,
+)
 
 
 class CompositionRoot:
@@ -77,7 +80,11 @@ class CompositionRoot:
         Cria um CompositionExplosion completamente configurado.
         """
 
-        api_client = CompositionApiClient()
+        manifold_client = ManifoldApiClient()
+
+        api_client = CompositionApiClient(
+            manifold_client=manifold_client,
+        )
 
         composition_repository = CompositionRepository(
             api_client=api_client,
@@ -140,8 +147,10 @@ class CompositionRoot:
                           CostCalc                 EQ/MO/MA
         """
 
-        composition_api_client = (
-            CompositionApiClient()
+        manifold_client = ManifoldApiClient()
+
+        composition_api_client = CompositionApiClient(
+            manifold_client=manifold_client,
         )
 
         composition_repository = (
@@ -164,8 +173,8 @@ class CompositionRoot:
             optimized_repository=optimized_repository,
         )
 
-        monetary_value_api_client = (
-            MonetaryValueApiClient()
+        monetary_value_api_client = MonetaryValueApiClient(
+            manifold_client=manifold_client,
         )
 
         monetary_value_repository = (

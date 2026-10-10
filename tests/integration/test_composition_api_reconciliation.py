@@ -37,7 +37,7 @@ def test_composition_0919013_matches_api_value():
 
     context = CalculationContext(
         source_file_uf="DF",
-        source_file_data_base=date(2021, 10, 1),
+        source_file_data_base=date(2023, 1, 1),
         type_system="ON",
     )
 

@@ -1,17 +1,27 @@
-from __future__ import annotations
-
 from dataclasses import dataclass
 from functools import lru_cache
 from os import getenv
+from pathlib import Path
+
+from dotenv import load_dotenv
+
+
+BASE_DIR = Path(__file__).resolve().parent.parent
+
+load_dotenv(
+    BASE_DIR / ".env",
+)
 
 
 class ConfigurationError(RuntimeError):
-    """Erro de configuração obrigatória da aplicação."""
+    """Erro de configuração da aplicação."""
 
 
 @dataclass(frozen=True)
 class Settings:
-    scraper_api_base_url: str
+    manifold_api_base_url: str
+    manifold_api_token: str
+
     manifold_jwks_url: str
     manifold_jwt_issuer: str
     manifold_jwt_audience: str
@@ -19,12 +29,19 @@ class Settings:
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    scraper_api_base_url = getenv(
-        "SCRAPER_API_BASE_URL"
+    manifold_api_base_url = getenv(
+        "MANIFOLD_API_BASE_URL",
+        "",
+    )
+
+    manifold_api_token = getenv(
+        "MANIFOLD_API_TOKEN",
+        "",
     )
 
     manifold_jwks_url = getenv(
-        "MANIFOLD_JWKS_URL"
+        "MANIFOLD_JWKS_URL",
+        "",
     )
 
     manifold_jwt_issuer = getenv(
@@ -39,21 +56,22 @@ def get_settings() -> Settings:
 
     missing = []
 
-    if not scraper_api_base_url:
-        missing.append("SCRAPER_API_BASE_URL")
+    if not manifold_api_base_url:
+        missing.append("MANIFOLD_API_BASE_URL")
 
     if not manifold_jwks_url:
         missing.append("MANIFOLD_JWKS_URL")
 
     if missing:
         raise ConfigurationError(
-            "Variáveis de ambiente obrigatórias não configuradas: "
+            "Variáveis de ambiente obrigatórias ausentes: "
             + ", ".join(missing)
         )
 
     return Settings(
-        scraper_api_base_url=scraper_api_base_url.rstrip("/"),
-        manifold_jwks_url=manifold_jwks_url.rstrip("/"),
+        manifold_api_base_url=manifold_api_base_url.rstrip("/"),
+        manifold_api_token=manifold_api_token,
+        manifold_jwks_url=manifold_jwks_url,
         manifold_jwt_issuer=manifold_jwt_issuer,
         manifold_jwt_audience=manifold_jwt_audience,
     )

@@ -1,89 +1,48 @@
-import requests
+from __future__ import annotations
 
-from time import perf_counter
+from typing import Any
 
-from app.infrastructure.api_query_metrics import (
-    ApiQueryMetrics,
+from app.infrastructure.manifold_api_client import (
+    ManifoldApiClient,
 )
 
-from app.config import get_settings
 
+class MonetaryValueApiError(RuntimeError):
+    """Erro de comunicação com a API de valores monetários."""
 
-
-class MonetaryValueApiError(Exception):
-    """
-    Erro durante a comunicação com a API
-    de valores monetários.
-    """
 
 class MonetaryValueApiClient:
     """
-    Cliente responsável pelo consumo da API
-    de valores monetários.
+    Cliente da API de valores monetários através do Manifold.
 
-
-    A responsabilidade desta classe é exclusivamente:
-
-    - realizar requisições HTTP;
-    - aplicar filtros disponíveis na API;
-    - tratar erros de comunicação;
-    - percorrer páginas quando necessário;
-    - retornar os dados brutos da API.
-
-    A conversão para MonetaryValue é responsabilidade
-    do MonetaryValueRepository.
+    O composition-engine não conhece a localização do Scraper.
     """
-
 
     def __init__(
         self,
-        base_url: str | None = None,
+        manifold_client: ManifoldApiClient | None = None,
         timeout: int = 30,
-        metrics: ApiQueryMetrics | None = None,
+        metrics=None,
     ) -> None:
-
-        resolved_base_url = (
-            base_url
-            if base_url is not None
-            else get_settings().scraper_api_base_url
+        self.manifold_client = (
+            manifold_client
+            or ManifoldApiClient(
+                timeout=timeout,
+            )
         )
-
-        self.base_url = resolved_base_url.rstrip("/")
-        self.timeout = timeout
         self.metrics = metrics
-
-
-
-    # ============================================================
-    # MÉTODOS PÚBLICOS
-    # ============================================================
 
     def get_values_by_code(
         self,
         code: str,
-    ) -> list[dict]:
-        """
-        Obtém todos os valores monetários associados
-        a um código de insumo.
-
-        Parameters
-        ----------
-        code:
-            Código do item genérico.
-
-        Returns
-        -------
-        list[dict]
-            Lista contendo todos os registros retornados
-            pela API para o código informado.
-        """
-
+    ) -> list[dict[str, Any]]:
         return self.get_values(
             generic_item=code,
         )
 
     def get_values(
         self,
+        *,
         generic_item: str | None = None,
         generic_item_in: list[str] | None = None,
         type_system: str | None = None,
@@ -91,231 +50,67 @@ class MonetaryValueApiClient:
         classification: str | None = None,
         group: str | None = None,
         unit: str | None = None,
-    ) -> list[dict]:
-        """
-        Obtém valores monetários utilizando os filtros
-        disponíveis no endpoint da API.
+    ) -> list[dict[str, Any]]:
+        params: dict[str, Any] = {}
 
-        Todos os parâmetros são opcionais.
+        if generic_item:
+            params["generic_item"] = generic_item
 
-        Parameters
-        ----------
-        generic_item:
-            Código do insumo.
+        if generic_item_in:
+            params["generic_item__in"] = ",".join(
+                str(value)
+                for value in generic_item_in
+            )
 
-        type_system:
-            Tipo de sistema.
+        if type_system:
+            params["type_system"] = type_system
 
-        source_file:
-            Identificador do arquivo de origem.
+        if source_file:
+            params["source_file"] = source_file
 
-        classification:
-            Classificação do valor monetário.
+        if classification:
+            params["classification"] = classification
 
-        group:
-            Grupo do insumo.
+        if group:
+            params["group"] = group
 
-        unit:
-            Unidade do insumo.
+        if unit:
+            params["unit"] = unit
 
-        Returns
-        -------
-        list[dict]
-            Todos os registros encontrados, incluindo
-            todas as páginas retornadas pela API.
-        """
-
-        endpoint = (
-            f"{self.base_url}"
-            "/valores-monetarios/"
-        )
-
-        params = self._build_params(
-            generic_item=generic_item,
-            generic_item_in=generic_item_in,
-            type_system=type_system,
-            source_file=source_file,
-            classification=classification,
-            group=group,
-            unit=unit,
-        )
-
-        return self._get_all_pages(
-            url=endpoint,
-            params=params,
-        )
-
-    # ============================================================
-    # CONSTRUÇÃO DOS PARÂMETROS
-    # ============================================================
-
-    def _build_params(
-        self,
-        generic_item: str | None = None,
-        generic_item_in: list[str] | None = None,
-        type_system: str | None = None,
-        source_file: str | None = None,
-        classification: str | None = None,
-        group: str | None = None,
-        unit: str | None = None,
-    ) -> dict[str, str]:
-        """
-        Constrói os parâmetros da requisição.
-
-        Apenas parâmetros com valores definidos são enviados
-        para a API.
-        """
-
-        params: dict[str, str] = {}
-
-        if generic_item is not None:
-            params["generic_item"] = str(generic_item)
-
-        if generic_item_in is not None:
-            normalized_codes = [
-                str(code)
-                for code in generic_item_in
-                if str(code)
-            ]
-
-            if normalized_codes:
-                params["generic_item__in"] = ",".join(
-                    normalized_codes
-                )
-
-        if type_system is not None:
-            params["type_system"] = str(type_system)
-
-        if source_file is not None:
-            params["source_file"] = str(source_file)
-
-        if classification is not None:
-            params["classification"] = str(classification)
-
-        if group is not None:
-            params["group"] = str(group)
-
-        if unit is not None:
-            params["unit"] = str(unit)
-
-        return params
-
-    # ============================================================
-    # PAGINAÇÃO
-    # ============================================================
+        try:
+            return self._get_all_pages(
+                params=params,
+            )
+        except Exception as exc:
+            raise MonetaryValueApiError(
+                "Não foi possível consultar os valores monetários."
+            ) from exc
 
     def _get_all_pages(
         self,
-        url: str,
-        params: dict | None = None,
-    ) -> list[dict]:
-        """
-        Obtém todos os registros de todas as páginas.
+        *,
+        params: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        results: list[dict[str, Any]] = []
 
-        A API Django REST Framework retorna normalmente
-        uma estrutura semelhante a:
+        response = self.manifold_client.get(
+            "/api/integrations/"
+            "scraper/buscar-valores-monetarios/",
+            params=params,
+        )
 
-            {
-                "count": ...,
-                "next": "...",
-                "previous": "...",
-                "results": [...]
-            }
-
-        Enquanto existir uma URL em "next", novas páginas
-        são consultadas.
-        """
-
-        results: list[dict] = []
-
-        current_url = url
-        current_params = params
-
-        while current_url is not None:
-
-            data = self._request(
-                url=current_url,
-                params=current_params,
-            )
-
-            page_results = data.get(
-                "results",
-                [],
-            )
-
+        while response:
             results.extend(
-                page_results
+                response.get("results", [])
             )
 
-            current_url = data.get(
-                "next"
-            )
+            next_url = response.get("next")
 
-            # A URL retornada pela API em "next" já possui
-            # os parâmetros de paginação necessários.
-            #
-            # Portanto, após a primeira requisição não devemos
-            # enviar novamente os parâmetros originais.
-            current_params = None
+            if not next_url:
+                break
+
+            response = self.manifold_client.get(
+                next_url
+            )
 
         return results
-
-    # ============================================================
-    # REQUISIÇÃO HTTP
-    # ============================================================
-
-    def _request(
-        self,
-        url: str,
-        params: dict | None = None,
-    ) -> dict:
-        """
-        Executa uma requisição GET e retorna o JSON.
-
-        Todos os erros de comunicação são encapsulados em
-        MonetaryValueApiError.
-        """
-
-        start_time = perf_counter()
-
-        try:
-
-            response = requests.get(
-                url,
-                params=params,
-                timeout=self.timeout,
-            )
-
-            response.raise_for_status()
-
-            data = response.json()
-
-        except requests.RequestException as error:
-
-            raise MonetaryValueApiError(
-                "Erro ao consultar a API de "
-                "valores monetários."
-            ) from error
-
-        except ValueError as error:
-
-            raise MonetaryValueApiError(
-                "A API de valores monetários retornou "
-                "uma resposta JSON inválida."
-            ) from error
-
-        duration = perf_counter() - start_time
-
-        if self.metrics is not None:
-            self.metrics.record(
-                service="monetary_value",
-                method="GET",
-                url=url,
-                params=params,
-                duration_seconds=duration,
-                result_count=len(
-                    data.get("results", [])
-                ),
-            )
-
-        return data

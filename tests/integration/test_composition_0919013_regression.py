@@ -17,8 +17,8 @@ from app.services.operational_cost_calculator import OperationalCostCalculator
 from app.services.monetary_value_resolver import MonetaryValueResolver
 
 COMPOSITION_CODE = "0919013"
-COMPOSITION_DATA_BASE = "2021-10-01"
-MONETARY_DATA_BASE = date(2021, 10, 1)
+COMPOSITION_DATA_BASE = "2023-01-01"
+MONETARY_DATA_BASE = date(2023, 1, 1)
 
 
 def round_2(
@@ -170,7 +170,7 @@ def test_composition_0919013_baseline_regression() -> None:
     )
 
     assert result.composition_unit_cost == (
-        Decimal("105890.00")
+        Decimal("124841.9800")
     )
 
 def test_composition_0919013_optimized_regression() -> None:
@@ -229,7 +229,7 @@ def test_composition_0919013_optimized_regression() -> None:
     )
 
     assert result.composition_unit_cost == (
-        Decimal("105890.00")
+        Decimal("124841.9800")
     )
 
 def _get_tree_result_data(
@@ -400,5 +400,5 @@ def test_composition_0919013_baseline_and_optimized_are_identical() -> None:
 
     assert (
         optimized_result.composition_unit_cost
-        == Decimal("105890.00")
+        == Decimal("124841.9800")
     )

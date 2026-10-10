@@ -29,8 +29,8 @@ OperationalCostCalculator,
 
 
 COMPOSITION_CODE = "0919013"
-COMPOSITION_DATA_BASE = "2021-10-01"
-MONETARY_DATA_BASE = date(2021, 10, 1)
+COMPOSITION_DATA_BASE = "2023-01-01"
+MONETARY_DATA_BASE = date(2023, 1, 1)
 
 def round_2(value: Decimal) -> Decimal:
     """Arredonda um valor para duas casas decimais."""
@@ -277,7 +277,7 @@ def test_composition_0919013_regression() -> None:
     print("=" * 70)
 
     assert result.composition_code == COMPOSITION_CODE
-    assert result.composition_unit_cost == Decimal("105890.00")
+    assert result.composition_unit_cost == Decimal("124841.9800")
 
     composition_code_counts = Counter(
     node.composition.generic_item
@@ -308,7 +308,7 @@ def test_composition_0919013_optimized_regression() -> None:
 
     O valor de referência esperado é:
 
-        105890.00
+        124841.9800
     """
 
     # ============================================================
@@ -317,7 +317,7 @@ def test_composition_0919013_optimized_regression() -> None:
 
     calculation_context = CalculationContext(
         source_file_uf="DF",
-        source_file_data_base=date(2021, 10, 1),
+        source_file_data_base=date(2023, 1, 1),
         type_system="ON",
     )
 
@@ -473,7 +473,7 @@ def test_composition_0919013_optimized_regression() -> None:
     # ============================================================
 
     expected_value = Decimal(
-        "105890.00"
+        "124841.9800"
     )
 
     print()

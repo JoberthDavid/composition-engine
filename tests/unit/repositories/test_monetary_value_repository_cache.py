@@ -26,7 +26,7 @@ def make_value_data(
         "source_file": {
             "id": 1,
             "uf": "DF",
-            "data_base": "2021-10-01",
+            "data_base": "2023-01-01",
         },
     }
 
@@ -157,7 +157,7 @@ def test_load_cache_preserves_context_and_reuses_cached_codes():
         api_client=api_client,
     )
 
-    context_date = date(2021, 10, 1)
+    context_date = date(2023, 1, 1)
 
     codes_by_group = {
         "EQ": {"EQ001"},

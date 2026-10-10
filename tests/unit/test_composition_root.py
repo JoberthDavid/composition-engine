@@ -40,15 +40,15 @@ from app.services.fic_calculator import (
 
 def test_create_composition_explosion_returns_configured_service() -> None:
     root = CompositionRoot(
-        composition_data_base="2021-10-01",
+        composition_data_base="2023-01-01",
     )
 
     context = CompositionOperationContext(
         source_file_uf="DF",
         type_system="ON",
         methodology="SC",
-        monetary_base_date=date(2021, 10, 1),
-        reference_base_date=date(2021, 10, 1),
+        monetary_base_date=date(2023, 1, 1),
+        reference_base_date=date(2023, 1, 1),
     )
 
     explosion = root.create_composition_explosion(
@@ -69,12 +69,12 @@ def test_create_composition_explosion_returns_configured_service() -> None:
 def test_create_composition_calculation_returns_service() -> None:
     context = CalculationContext(
         source_file_uf="DF",
-        source_file_data_base=date(2021, 10, 1),
+        source_file_data_base=date(2023, 1, 1),
         type_system="ON",
     )
 
     root = CompositionRoot(
-        composition_data_base="2021-10-01",
+        composition_data_base="2023-01-01",
     )
 
     service = root.create_composition_calculation(
@@ -90,12 +90,12 @@ def test_create_composition_calculation_returns_service() -> None:
 def test_create_composition_calculation_builds_complete_graph() -> None:
     context = CalculationContext(
         source_file_uf="DF",
-        source_file_data_base=date(2021, 10, 1),
+        source_file_data_base=date(2023, 1, 1),
         type_system="ON",
     )
 
     root = CompositionRoot(
-        composition_data_base="2021-10-01",
+        composition_data_base="2023-01-01",
     )
 
     service = root.create_composition_calculation(
@@ -152,12 +152,12 @@ def test_create_composition_calculation_builds_complete_graph() -> None:
 def test_create_composition_calculation_preserves_calculation_context() -> None:
     context = CalculationContext(
         source_file_uf="DF",
-        source_file_data_base=date(2021, 10, 1),
+        source_file_data_base=date(2023, 1, 1),
         type_system="ON",
     )
 
     root = CompositionRoot(
-        composition_data_base="2021-10-01",
+        composition_data_base="2023-01-01",
     )
 
     service = root.create_composition_calculation(

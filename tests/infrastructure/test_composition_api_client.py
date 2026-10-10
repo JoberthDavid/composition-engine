@@ -1,31 +1,41 @@
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import pytest
-import requests
 
 from app.infrastructure.composition_api_client import (
     CompositionApiClient,
-    CompositionApiError,
 )
+from app.infrastructure.manifold_api_client import (
+    ManifoldApiError,
+)
+
 
 COMPOSITION_DATA_BASE = "2021-10-01"
 
+ACTIVITIES_PATH = (
+    "/api/integrations/"
+    "scraper/buscar-atividades-composicao/"
+)
+
 
 def test_get_composition_activities_by_codes_returns_empty_for_empty_codes():
-    client = CompositionApiClient()
+    manifold_client = Mock()
 
-    with patch("app.infrastructure.composition_api_client.requests.get") as mock_get:
-        result = client.get_composition_activities_by_codes([])
+    client = CompositionApiClient(
+        manifold_client=manifold_client,
+    )
+
+    result = client.get_composition_activities_by_codes([])
 
     assert result == []
-    mock_get.assert_not_called()
 
-def test_get_composition_activities_by_codes_deduplicates_codes():
-    client = CompositionApiClient()
+    manifold_client.get.assert_not_called()
 
-    response = Mock()
-    response.raise_for_status.return_value = None
-    response.json.return_value = {
+
+def test_get_composition_activities_by_codes_sends_codes():
+    manifold_client = Mock()
+
+    manifold_client.get.return_value = {
         "results": [
             {
                 "composition_code": "0919013",
@@ -36,106 +46,128 @@ def test_get_composition_activities_by_codes_deduplicates_codes():
         "next": None,
     }
 
-    with patch(
-        "app.infrastructure.composition_api_client.requests.get",
-        return_value=response,
-    ) as mock_get:
-        result = client.get_composition_activities_by_codes(
-            ["0919013", "0919013", "0407819"]
-        )
+    client = CompositionApiClient(
+        manifold_client=manifold_client,
+    )
 
-    assert result == response.json.return_value["results"]
+    result = client.get_composition_activities_by_codes(
+        ["0919013", "0919013", "0407819"]
+    )
 
-    mock_get.assert_called_once()
+    assert result == [
+        {
+            "composition_code": "0919013",
+            "generic_item": "0407819",
+            "input_quantity": "1.00000",
+        }
+    ]
 
-    _, kwargs = mock_get.call_args
+    manifold_client.get.assert_called_once_with(
+        ACTIVITIES_PATH,
+        params={
+            "composition_code__in": "0919013,0919013,0407819",
+            "limit": 1000,
+        },
+    )
 
-    assert kwargs["params"] == {
-        "composition_code__in": "0919013,0407819",
-        "limit": 1000,
-    }
 
 def test_get_composition_activities_by_codes_sends_data_base():
-    client = CompositionApiClient()
+    manifold_client = Mock()
 
-    response = Mock()
-    response.raise_for_status.return_value = None
-    response.json.return_value = {
+    manifold_client.get.return_value = {
         "results": [],
         "next": None,
     }
 
-    with patch(
-        "app.infrastructure.composition_api_client.requests.get",
-        return_value=response,
-    ) as mock_get:
-        client.get_composition_activities_by_codes(
-            ["0919013"],
-            data_base=COMPOSITION_DATA_BASE,
-        )
+    client = CompositionApiClient(
+        manifold_client=manifold_client,
+    )
 
-    _, kwargs = mock_get.call_args
+    client.get_composition_activities_by_codes(
+        ["0919013"],
+        data_base=COMPOSITION_DATA_BASE,
+    )
 
-    assert kwargs["params"] == {
-        "composition_code__in": "0919013",
-        "limit": 1000,
-        "data_base": COMPOSITION_DATA_BASE,
-    }
+    manifold_client.get.assert_called_once_with(
+        ACTIVITIES_PATH,
+        params={
+            "composition_code__in": "0919013",
+            "limit": 1000,
+            "data_base": COMPOSITION_DATA_BASE,
+        },
+    )
+
 
 def test_get_composition_activities_by_codes_follows_pagination():
-    client = CompositionApiClient()
+    manifold_client = Mock()
 
-    first_response = Mock()
-    first_response.raise_for_status.return_value = None
-    first_response.json.return_value = {
-        "results": [{"generic_item": "A"}],
-        "next": "https://example.com/compositions/activities/?page=2",
+    first_response = {
+        "results": [
+            {"generic_item": "A"},
+        ],
+        "next": "https://example.com/page-2",
     }
 
-    second_response = Mock()
-    second_response.raise_for_status.return_value = None
-    second_response.json.return_value = {
-        "results": [{"generic_item": "B"}],
+    second_response = {
+        "results": [
+            {"generic_item": "B"},
+        ],
         "next": None,
     }
 
-    with patch(
-        "app.infrastructure.composition_api_client.requests.get",
-        side_effect=[first_response, second_response],
-    ) as mock_get:
-        result = client.get_composition_activities_by_codes(
-            ["0919013"]
-        )
+    manifold_client.get.side_effect = [
+        first_response,
+        second_response,
+    ]
+
+    client = CompositionApiClient(
+        manifold_client=manifold_client,
+    )
+
+    result = client.get_composition_activities_by_codes(
+        ["0919013"]
+    )
 
     assert result == [
         {"generic_item": "A"},
         {"generic_item": "B"},
     ]
 
-    assert mock_get.call_count == 2
+    assert manifold_client.get.call_count == 2
 
-    first_call = mock_get.call_args_list[0]
-    second_call = mock_get.call_args_list[1]
+    first_call = manifold_client.get.call_args_list[0]
+    second_call = manifold_client.get.call_args_list[1]
 
-    assert first_call.kwargs["params"] == {
-        "composition_code__in": "0919013",
-        "limit": 1000,
+    assert first_call.args == (
+        ACTIVITIES_PATH,
+    )
+
+    assert first_call.kwargs == {
+        "params": {
+            "composition_code__in": "0919013",
+            "limit": 1000,
+        },
     }
 
-    assert second_call.args[0] == (
-        "https://example.com/compositions/activities/?page=2"
+    assert second_call.args == (
+        "https://example.com/page-2",
     )
-    assert second_call.kwargs["params"] is None
+
+    assert second_call.kwargs == {}
 
 
-def test_get_composition_activities_by_codes_raises_composition_api_error():
-    client = CompositionApiClient()
+def test_get_composition_activities_by_codes_propagates_manifold_api_error():
+    manifold_client = Mock()
 
-    with patch(
-        "app.infrastructure.composition_api_client.requests.get",
-        side_effect=requests.RequestException("connection error"),
-    ):
-        with pytest.raises(CompositionApiError):
-            client.get_composition_activities_by_codes(
-                ["0919013"]
-            )
+    manifold_client.get.side_effect = ManifoldApiError(
+        "connection error"
+    )
+
+    client = CompositionApiClient(
+        manifold_client=manifold_client,
+    )
+
+    with pytest.raises(ManifoldApiError):
+        client.get_composition_activities_by_codes(
+            ["0919013"]
+        )

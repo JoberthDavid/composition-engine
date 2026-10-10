@@ -48,8 +48,8 @@ def test_calculate_returns_public_contract(jwt_headers) -> None:
             "source_file_uf": "DF",
             "type_system": "ON",
             "methodology": "SC",
-            "monetary_base_date": "2021-10-01",
-            "reference_base_date": "2021-10-01",
+            "monetary_base_date": "2023-01-01",
+            "reference_base_date": "2023-01-01",
         },
     )
 
@@ -57,7 +57,7 @@ def test_calculate_returns_public_contract(jwt_headers) -> None:
 
     assert response.json() == {
         "composition_id": "0919013",
-        "reference_base_date": "2021-10-01",
+        "reference_base_date": "2023-01-01",
         "unit_cost": "105890.00",
     }
 
@@ -78,8 +78,8 @@ def test_calculate_rejects_missing_source_file_uf(jwt_headers) -> None:
         params={
             "type_system": "ON",
             "methodology": "SC",
-            "monetary_base_date": "2021-10-01",
-            "reference_base_date": "2021-10-01",
+            "monetary_base_date": "2023-01-01",
+            "reference_base_date": "2023-01-01",
         },
     )
 
@@ -103,7 +103,7 @@ def test_calculate_rejects_invalid_monetary_base_date(jwt_headers) -> None:
             "type_system": "ON",
             "methodology": "SC",
             "monetary_base_date": "invalid",
-            "reference_base_date": "2021-10-01",
+            "reference_base_date": "2023-01-01",
         },
     )
 
@@ -124,8 +124,8 @@ def test_calculate_rejects_missing_type_system(jwt_headers) -> None:
         params={
             "source_file_uf": "DF",
             "methodology": "SC",
-            "monetary_base_date": "2021-10-01",
-            "reference_base_date": "2021-10-01",
+            "monetary_base_date": "2023-01-01",
+            "reference_base_date": "2023-01-01",
         },
     )
 
@@ -146,8 +146,8 @@ def test_calculate_rejects_missing_source_file_uf(jwt_headers) -> None:
         params={
             "type_system": "ON",
             "methodology": "SC",
-            "monetary_base_date": "2021-10-01",
-            "reference_base_date": "2021-10-01",
+            "monetary_base_date": "2023-01-01",
+            "reference_base_date": "2023-01-01",
         },
     )
 
@@ -203,8 +203,8 @@ def test_calculate_calls_service_with_composition_id(jwt_headers) -> None:
             "source_file_uf": "DF",
             "type_system": "ON",
             "methodology": "SC",
-            "monetary_base_date": "2021-10-01",
-            "reference_base_date": "2021-10-01",
+            "monetary_base_date": "2023-01-01",
+            "reference_base_date": "2023-01-01",
         },
     )
 
@@ -230,8 +230,8 @@ def test_calculate_returns_expected_response(jwt_headers) -> None:
             "source_file_uf": "DF",
             "type_system": "ON",
             "methodology": "SC",
-            "monetary_base_date": "2021-10-01",
-            "reference_base_date": "2021-10-01",
+            "monetary_base_date": "2023-01-01",
+            "reference_base_date": "2023-01-01",
         },
     )
 
@@ -239,7 +239,7 @@ def test_calculate_returns_expected_response(jwt_headers) -> None:
 
     assert response.json() == {
         "composition_id": "0919013",
-        "reference_base_date": "2021-10-01",
+        "reference_base_date": "2023-01-01",
         "unit_cost": "800.00",
     }
 
@@ -257,7 +257,7 @@ def test_calculate_rejects_missing_reference_base_date(jwt_headers) -> None:
             "source_file_uf": "DF",
             "methodology": "SC",
             "type_system": "ON",
-            "monetary_base_date": "2021-10-01",
+            "monetary_base_date": "2023-01-01",
         },
     )
 
@@ -275,8 +275,8 @@ def test_calculate_rejects_missing_methodology(jwt_headers) -> None:
         params={
             "source_file_uf": "DF",
             "type_system": "ON",
-            "monetary_base_date": "2021-10-01",
-            "reference_base_date": "2021-10-01",
+            "monetary_base_date": "2023-01-01",
+            "reference_base_date": "2023-01-01",
         },
     )
 

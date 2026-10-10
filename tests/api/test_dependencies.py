@@ -12,8 +12,8 @@ def test_get_composition_explosion():
         source_file_uf="DF",
         type_system="ON",
         methodology="SC",
-        monetary_base_date=date(2021, 10, 1),
-        reference_base_date=date(2021, 10, 1),
+        monetary_base_date=date(2023, 1, 1),
+        reference_base_date=date(2023, 1, 1),
     )
 
     explosion = get_composition_explosion(
@@ -56,8 +56,8 @@ def test_get_composition_explosion_passes_reference_base_date_to_root(
         source_file_uf="DF",
         type_system="ON",
         methodology="SC",
-        monetary_base_date=date(2021, 10, 1),
-        reference_base_date=date(2021, 10, 1),
+        monetary_base_date=date(2023, 1, 1),
+        reference_base_date=date(2023, 1, 1),
     )
 
     explosion = get_composition_explosion(

@@ -17,8 +17,8 @@ def _build_request() -> CompositionCalculationRequest:
         source_file_uf="DF",
         type_system="ON",
         methodology="SC",
-        monetary_base_date=date(2021, 10, 1),
-        reference_base_date=date(2021, 10, 1),
+        monetary_base_date=date(2023, 1, 1),
+        reference_base_date=date(2023, 1, 1),
     )
 
 def test_factory_passes_source_file_uf_to_calculation_context(
@@ -99,7 +99,7 @@ def test_factory_passes_monetary_base_date_to_calculation_context(
 
     assert (
         context.source_file_data_base
-        == date(2021, 10, 1)
+        == date(2023, 1, 1)
     )
 
 
@@ -140,7 +140,7 @@ def test_factory_passes_reference_base_date_to_composition_root(
 
     assert (
         captured["composition_data_base"]
-        == "2021-10-01"
+        == "2023-01-01"
     )
 
 def test_factory_returns_composition_calculation_service(

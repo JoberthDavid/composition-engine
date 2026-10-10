@@ -6,8 +6,8 @@ from app.domain.calculation_context import CalculationContext
 
 
 ROOT_COMPOSITION_CODE = "0919013"
-COMPOSITION_DATA_BASE = "2021-10-01"
-MONETARY_DATA_BASE = date(2021, 10, 1)
+COMPOSITION_DATA_BASE = "2023-01-01"
+MONETARY_DATA_BASE = date(2023, 1, 1)
 
 
 def test_composition_root_reproduces_historical_calculation() -> None:
@@ -30,5 +30,5 @@ def test_composition_root_reproduces_historical_calculation() -> None:
     )
 
     assert result.composition_unit_cost == Decimal(
-        "105890.00"
+        "124841.9800"
     )

@@ -30,8 +30,8 @@ OperationalCostCalculator,
 )
 
 ROOT_COMPOSITION_CODE = "0919013"
-COMPOSITION_DATA_BASE = "2021-10-01"
-MONETARY_DATA_BASE = date.fromisoformat("2021-10-01")
+COMPOSITION_DATA_BASE = "2023-01-01"
+MONETARY_DATA_BASE = date.fromisoformat("2023-01-01")
 
 def _build_calculation_context() -> CalculationContext:
     """
@@ -1287,7 +1287,7 @@ def test_optimized_resolver_calculates_root_composition():
     ```
     O valor de referência esperado é:
 
-        105890.00
+        124841.9800
     """
 
     calculation_context = (
@@ -1344,7 +1344,7 @@ def test_optimized_resolver_calculates_root_composition():
     result = calculator.calculate(tree)
 
     expected_value = Decimal(
-        "105890.00"
+        "124841.98"
     )
 
     print()

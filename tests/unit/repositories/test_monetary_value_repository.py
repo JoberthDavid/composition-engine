@@ -26,7 +26,7 @@ def create_api_value(
         "source_file": {
             "id": 1,
             "uf": "DF",
-            "data_base": "2021-10-01",
+            "data_base": "2023-01-01",
         },
     }
 
@@ -63,7 +63,7 @@ def test_load_cache_queries_only_provided_codes() -> None:
         codes_by_group=codes_by_group,
         type_system="ON",
         source_file_uf="DF",
-        source_file_data_base=date(2021, 10, 1),
+        source_file_data_base=date(2023, 1, 1),
     )
 
     assert api_client.get_values.call_count == 3
@@ -104,7 +104,7 @@ def test_load_cache_does_not_query_codes_outside_requested_groups() -> None:
         },
         type_system="ON",
         source_file_uf="DF",
-        source_file_data_base=date(2021, 10, 1),
+        source_file_data_base=date(2023, 1, 1),
     )
 
     api_client.get_values.assert_called_once()
@@ -114,7 +114,7 @@ def test_load_cache_does_not_query_codes_outside_requested_groups() -> None:
     assert call.kwargs["generic_item_in"] == ["E001"]
     assert call.kwargs["group"] == "EQ"
     assert call.kwargs["type_system"] == "ON"
-    assert call.kwargs["source_file"] == "2021-10-01"
+    assert call.kwargs["source_file"] == "2023-01-01"
 
 
 def test_load_cache_uses_na_for_materials() -> None:
@@ -139,13 +139,13 @@ def test_load_cache_uses_na_for_materials() -> None:
         },
         type_system="ON",
         source_file_uf="DF",
-        source_file_data_base=date(2021, 10, 1),
+        source_file_data_base=date(2023, 1, 1),
     )
 
     api_client.get_values.assert_called_once_with(
         generic_item_in=["M001"],
         type_system="NA",
-        source_file="2021-10-01",
+        source_file="2023-01-01",
         group="MA",
     )
 
@@ -176,7 +176,7 @@ def test_load_cache_queries_only_new_codes_on_second_load() -> None:
     context = {
         "type_system": "ON",
         "source_file_uf": "DF",
-        "source_file_data_base": date(2021, 10, 1),
+        "source_file_data_base": date(2023, 1, 1),
     }
 
     first_codes = {
@@ -254,7 +254,7 @@ def test_load_cache_clears_cache_when_context_changes() -> None:
         },
         type_system="ON",
         source_file_uf="DF",
-        source_file_data_base=date(2021, 10, 1),
+        source_file_data_base=date(2023, 1, 1),
     )
 
     assert api_client.get_values.call_count == 1
@@ -268,7 +268,7 @@ def test_load_cache_clears_cache_when_context_changes() -> None:
         },
         type_system="ON",
         source_file_uf="GO",
-        source_file_data_base=date(2021, 10, 1),
+        source_file_data_base=date(2023, 1, 1),
     )
 
     assert api_client.get_values.call_count == 2

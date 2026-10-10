@@ -109,7 +109,7 @@ def test_monetary_value_cache_parallel_equivalence():
 
     context = CalculationContext(
         source_file_uf="DF",
-        source_file_data_base=date(2021, 10, 1),
+        source_file_data_base=date(2023, 1, 1),
         type_system="ON",
     )
 

@@ -13,8 +13,8 @@ def test_calculate_composition_0919013(jwt_headers) -> None:
             "source_file_uf": "DF",
             "methodology": "SC",
             "type_system": "ON",
-            "monetary_base_date": "2021-10-01",
-            "reference_base_date": "2021-10-01",
+            "monetary_base_date": "2023-01-01",
+            "reference_base_date": "2023-01-01",
         },
     )
 
@@ -22,6 +22,6 @@ def test_calculate_composition_0919013(jwt_headers) -> None:
 
     assert response.json() == {
         "composition_id": "0919013",
-        "reference_base_date": "2021-10-01",
-        "unit_cost": "105890.00",
+        "reference_base_date": "2023-01-01",
+        "unit_cost": "124841.98",
     }

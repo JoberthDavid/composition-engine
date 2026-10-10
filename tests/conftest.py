@@ -11,11 +11,6 @@ from cryptography.hazmat.primitives.asymmetric.ed25519 import (
 
 
 os.environ.setdefault(
-    "SCRAPER_API_BASE_URL",
-    "https://web-production-5eeb7.up.railway.app",
-)
-
-os.environ.setdefault(
     "MANIFOLD_JWKS_URL",
     "http://manifold.test/.well-known/jwks.json",
 )

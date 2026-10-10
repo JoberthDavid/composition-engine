@@ -1,244 +1,155 @@
-import requests
+from __future__ import annotations
 
+from typing import Any
 
-from time import perf_counter
-
-from app.infrastructure.api_query_metrics import (
-    ApiQueryMetrics,
+from app.infrastructure.manifold_api_client import (
+    ManifoldApiClient,
 )
 
-from app.config import get_settings
 
-
-class CompositionApiError(Exception):
-    """Erro durante a comunicação com a API de composições."""
+class CompositionApiError(RuntimeError):
+    """Erro de comunicação com a API de composições."""
 
 
 class CompositionApiClient:
-    """Cliente responsável pelo consumo da API de composições."""
+    """
+    Cliente da API de composições através do Manifold.
 
+    O composition-engine não conhece a localização do Scraper.
+    """
 
     def __init__(
         self,
-        base_url: str | None = None,
-        metrics: ApiQueryMetrics | None = None,
+        manifold_client: ManifoldApiClient | None = None,
+        metrics=None,
     ) -> None:
-
-        resolved_base_url = (
-            base_url
-            if base_url is not None
-            else get_settings().scraper_api_base_url
+        self.manifold_client = (
+            manifold_client
+            or ManifoldApiClient()
         )
-
-        self.base_url = resolved_base_url.rstrip("/")
         self.metrics = metrics
-
-    def get_composition_by_code(
-        self,
-        code: str,
-    ) -> dict | None:
-        """Obtém uma composição pelo seu código."""
-
-        compositions = self.get_compositions_by_codes(
-            [code]
-        )
-
-        if not compositions:
-            return None
-
-        return compositions[0]
 
     def get_compositions_by_codes(
         self,
         codes: list[str],
-    ) -> list[dict]:
-        """Obtém composições utilizando uma lista de códigos."""
-
-        endpoint = f"{self.base_url}/composicoes/"
-
-        params = {
-            "generic_item__code__in": ",".join(
-                str(code)
-                for code in codes
-            )
-        }
-
-
-        start_time = perf_counter()
+    ) -> list[dict[str, Any]]:
+        if not codes:
+            return []
 
         try:
-
-            response = requests.get(
-                endpoint,
-                params=params,
-                timeout=30,
+            response = self.manifold_client.get(
+                "/api/integrations/"
+                "scraper/buscar-composicoes/",
+                params={
+                    "generic_item__code__in": ",".join(
+                        str(code)
+                        for code in codes
+                    ),
+                },
             )
-
-            response.raise_for_status()
-
-        except requests.RequestException as error:
-
+        except Exception as exc:
             raise CompositionApiError(
-                "Erro ao consultar a API de composições."
-            ) from error
+                "Não foi possível consultar as composições."
+            ) from exc
 
-        data = response.json()
-
-        duration = perf_counter() - start_time
-
-        if self.metrics is not None:
-            self.metrics.record(
-                service="composition",
-                method="GET",
-                url=endpoint,
-                params=params,
-                duration_seconds=duration,
-                result_count=len(
-                    data.get("results", [])
-                ),
-            )
-
-        return data.get(
-            "results",
-            [],
-        )
+        return self._extract_results(response)
 
     def get_composition_activities_by_codes(
         self,
         codes: list[str],
         data_base: str | None = None,
-    ) -> list[dict]:
-        """
-        Consulta as atividades auxiliares de várias composições
-        em uma única chamada ao endpoint otimizado.
-        """
-        normalized_codes = list(
-            dict.fromkeys(
-                str(code)
-                for code in codes
-                if str(code)
-            )
-        )
-
-        if not normalized_codes:
+    ) -> list[dict[str, Any]]:
+        if not codes:
             return []
 
-        endpoint = f"{self.base_url}/compositions/activities/"
         params = {
-            "composition_code__in": ",".join(normalized_codes),
+            "composition_code__in": ",".join(
+                str(code)
+                for code in codes
+            ),
             "limit": 1000,
         }
 
-        if data_base is not None:
-            params["data_base"] = str(data_base)
+        if data_base:
+            params["data_base"] = data_base
 
-        results = []
-        next_url = endpoint
-        next_params = params
-
-        while next_url:
-            start_time = perf_counter()
-
-            try:
-                response = requests.get(
-                    next_url,
-                    params=next_params,
-                    timeout=30,
-                )
-                response.raise_for_status()
-            except requests.RequestException as error:
-                raise CompositionApiError(
-                    "Erro ao consultar as atividades das composições."
-                ) from error
-
-            data = response.json()
-
-            duration = perf_counter() - start_time
-
-            page_results = data.get("results", [])
-            results.extend(page_results)
-
-            if self.metrics is not None:
-                self.metrics.record(
-                    service="composition_activity",
-                    method="GET",
-                    url=next_url,
-                    params=next_params,
-                    duration_seconds=duration,
-                    result_count=len(page_results),
-                )
-
-            next_url = data.get("next")
-            next_params = None
-
-        return results
+        return self._get_all_pages(
+            path=(
+                "/api/integrations/"
+                "scraper/buscar-atividades-composicao/"
+            ),
+            params=params,
+        )
 
     def get_composition_transports_by_codes(
         self,
         codes: list[str],
         data_base: str | None = None,
-    ) -> list[dict]:
-        """
-        Consulta os transportes de várias composições
-        em uma única chamada ao endpoint otimizado.
-        """
-        normalized_codes = list(
-            dict.fromkeys(
-                str(code)
-                for code in codes
-                if str(code)
-            )
-        )
-
-        if not normalized_codes:
+    ) -> list[dict[str, Any]]:
+        if not codes:
             return []
 
-        endpoint = f"{self.base_url}/compositions/transports/"
         params = {
-            "composition_code__in": ",".join(normalized_codes),
+            "composition_code__in": ",".join(
+                str(code)
+                for code in codes
+            ),
             "limit": 1000,
         }
 
-        if data_base is not None:
-            params["data_base"] = str(data_base)
+        if data_base:
+            params["data_base"] = data_base
 
-        results = []
-        next_url = endpoint
-        next_params = params
+        return self._get_all_pages(
+            path=(
+                "/api/integrations/"
+                "scraper/buscar-transportes-composicao/"
+            ),
+            params=params,
+        )
 
-        while next_url:
-            start_time = perf_counter()
+    def _get_all_pages(
+        self,
+        *,
+        path: str,
+        params: dict[str, Any],
+    ) -> list[dict[str, Any]]:
+        results: list[dict[str, Any]] = []
 
-            try:
-                response = requests.get(
-                    next_url,
-                    params=next_params,
-                    timeout=30,
-                )
-                response.raise_for_status()
-            except requests.RequestException as error:
-                raise CompositionApiError(
-                    "Erro ao consultar os transportes das composições."
-                ) from error
+        response = self.manifold_client.get(
+            path,
+            params=params,
+        )
 
-            data = response.json()
+        while response:
+            results.extend(
+                response.get("results", [])
+            )
 
-            duration = perf_counter() - start_time
+            next_url = response.get("next")
 
-            page_results = data.get("results", [])
-            results.extend(page_results)
+            if not next_url:
+                break
 
-            if self.metrics is not None:
-                self.metrics.record(
-                    service="composition_transport",
-                    method="GET",
-                    url=next_url,
-                    params=next_params,
-                    duration_seconds=duration,
-                    result_count=len(page_results),
-                )
-
-            next_url = data.get("next")
-            next_params = None
+            response = self.manifold_client.get(
+                next_url
+            )
 
         return results
+
+    @staticmethod
+    def _extract_results(
+        response: Any,
+    ) -> list[dict[str, Any]]:
+        if response is None:
+            return []
+
+        if isinstance(response, list):
+            return response
+
+        if isinstance(response, dict):
+            return response.get("results", [])
+
+        raise CompositionApiError(
+            "Resposta inválida da API de composições."
+        )

@@ -7,7 +7,12 @@ from app.api.dependencies import (
 )
 from app.api.schemas import CompositionExplosionResponse
 from app.schemas.composition_calculation import (
+    CompositionCalculationDetailResponse,
+    CompositionCalculationLinesResponse,
     CompositionCalculationResponse,
+    EquipmentLineResponse,
+    LaborLineResponse,
+    MaterialLineResponse,
 )
 from app.domain.composition_operation_context import (
     CompositionOperationContext,
@@ -60,6 +65,72 @@ def calculate(
         composition_id=result.composition_code,
         reference_base_date=context.reference_base_date,
         unit_cost=result.composition_unit_cost,
+    )
+
+@router.post(
+    "/{composition_code}/calculate-detail",
+    response_model=CompositionCalculationDetailResponse,
+    dependencies=[
+        Depends(
+            require_scope("composition:calculate")
+        )
+    ],
+)
+def calculate_detail(
+    composition_code: str,
+    context: CompositionOperationContext = Depends(
+        get_composition_operation_context,
+    ),
+    service: CompositionCalculationService = Depends(
+        create_composition_calculation_service,
+    ),
+) -> CompositionCalculationDetailResponse:
+
+    result = service.calculate(
+        composition_id=composition_code,
+    )
+
+    return CompositionCalculationDetailResponse(
+        composition_id=result.composition_code,
+        reference_base_date=context.reference_base_date,
+        unit_cost=result.composition_unit_cost,
+        detail=CompositionCalculationLinesResponse(
+            equipment=[
+                EquipmentLineResponse(
+                    code=item.code,
+                    description=item.description,
+                    unit=item.unit,
+                    quantity=item.quantity,
+                    input_use=item.input_use,
+                    productive_value=item.productive_value,
+                    unproductive_value=item.unproductive_value,
+                    line_cost=item.line_cost,
+                )
+                for item in result.equipment_items
+            ],
+            labor=[
+                LaborLineResponse(
+                    code=item.code,
+                    description=item.description,
+                    unit=item.unit,
+                    quantity=item.quantity,
+                    monetary_value=item.monetary_value,
+                    line_cost=item.line_cost,
+                )
+                for item in result.labor_items
+            ],
+            materials=[
+                MaterialLineResponse(
+                    code=item.code,
+                    description=item.description,
+                    unit=item.unit,
+                    quantity=item.quantity,
+                    monetary_value=item.monetary_value,
+                    line_cost=item.line_cost,
+                )
+                for item in result.material_items
+            ],
+        ),
     )
 
 

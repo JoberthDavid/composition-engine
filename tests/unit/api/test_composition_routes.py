@@ -12,7 +12,6 @@ from app.api.dependencies import (
     create_composition_calculation_service,
 )
 
-
 def create_test_app(
     service: Mock,
 ) -> FastAPI:
@@ -282,3 +281,128 @@ def test_calculate_rejects_missing_methodology(jwt_headers) -> None:
 
     assert response.status_code == 422
     service.calculate.assert_not_called()
+
+
+def test_calculate_detail_returns_complete_cost_breakdown(
+    jwt_headers,
+) -> None:
+    service = Mock()
+
+    service.calculate.return_value = SimpleNamespace(
+        composition_code="0919013",
+        composition_unit_cost=Decimal("105890.123456"),
+        equipment_items=[
+            SimpleNamespace(
+                code="E001",
+                description="Equipment 1",
+                unit="h",
+                quantity=Decimal("2.5000"),
+                input_use=Decimal("0.8000"),
+                productive_value=Decimal("100.1234"),
+                unproductive_value=Decimal("50.5678"),
+                line_cost=Decimal("225.4150"),
+            ),
+            SimpleNamespace(
+                code="E002",
+                description="Equipment 2",
+                unit="h",
+                quantity=Decimal("1.0000"),
+                input_use=Decimal("0.5000"),
+                productive_value=Decimal("80.0000"),
+                unproductive_value=Decimal("40.0000"),
+                line_cost=Decimal("60.0000"),
+            ),
+        ],
+        labor_items=[
+            SimpleNamespace(
+                code="MO001",
+                description="Labor 1",
+                unit="h",
+                quantity=Decimal("3.0000"),
+                monetary_value=Decimal("25.123456"),
+                line_cost=Decimal("75.370368"),
+            ),
+        ],
+        material_items=[
+            SimpleNamespace(
+                code="MA001",
+                description="Material 1",
+                unit="kg",
+                quantity=Decimal("10.0000"),
+                monetary_value=Decimal("12.345678"),
+                line_cost=Decimal("123.456780"),
+            ),
+        ],
+    )
+
+    app = create_test_app(service)
+
+    client = TestClient(app)
+
+    response = client.post(
+        "/compositions/0919013/calculate-detail",
+        headers=jwt_headers(["composition:calculate"]),
+        params={
+            "source_file_uf": "DF",
+            "type_system": "ON",
+            "methodology": "SC",
+            "monetary_base_date": "2023-01-01",
+            "reference_base_date": "2023-01-01",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["composition_id"] == "0919013"
+    assert data["reference_base_date"] == "2023-01-01"
+    assert data["unit_cost"] == "105890.123456"
+
+    assert len(data["detail"]["equipment"]) == 2
+    assert len(data["detail"]["labor"]) == 1
+    assert len(data["detail"]["materials"]) == 1
+
+    assert data["detail"]["equipment"][0] == {
+        "code": "E001",
+        "description": "Equipment 1",
+        "unit": "h",
+        "quantity": "2.5000",
+        "input_use": "0.8000",
+        "productive_value": "100.1234",
+        "unproductive_value": "50.5678",
+        "line_cost": "225.4150",
+    }
+
+    assert data["detail"]["equipment"][1] == {
+        "code": "E002",
+        "description": "Equipment 2",
+        "unit": "h",
+        "quantity": "1.0000",
+        "input_use": "0.5000",
+        "productive_value": "80.0000",
+        "unproductive_value": "40.0000",
+        "line_cost": "60.0000",
+    }
+
+    assert data["detail"]["labor"][0] == {
+        "code": "MO001",
+        "description": "Labor 1",
+        "unit": "h",
+        "quantity": "3.0000",
+        "monetary_value": "25.123456",
+        "line_cost": "75.370368",
+    }
+
+    assert data["detail"]["materials"][0] == {
+        "code": "MA001",
+        "description": "Material 1",
+        "unit": "kg",
+        "quantity": "10.0000",
+        "monetary_value": "12.345678",
+        "line_cost": "123.456780",
+    }
+
+    service.calculate.assert_called_once_with(
+        composition_id="0919013",
+    )

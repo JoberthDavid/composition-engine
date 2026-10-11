@@ -9,6 +9,10 @@ CompositionInput,
 from app.services.monetary_value_resolver import (
 MonetaryValueResolver,
 )
+from app.domain.composition_line_result import (
+    LaborLineResult,
+)
+
 
 class LaborCalculator:
     """
@@ -47,22 +51,20 @@ class LaborCalculator:
         labor: CompositionInput,
     ) -> Decimal:
         """
-        Calcula o custo bruto de uma linha
-        de mão de obra.
+        Calcula o custo bruto de uma linha de mão de obra.
+        """
 
-        Fluxo:
+        return self.calculate_detail(
+            labor=labor,
+        ).line_cost
 
-            CompositionInput
-                    ↓
-            MonetaryValueResolver
-                    ↓
-            MonetaryValue
-                    ↓
-            quantidade
-                    ×
-            valor monetário
-                    ↓
-            resultado
+    def calculate_detail(
+        self,
+        labor: CompositionInput,
+    ) -> LaborLineResult:
+        """
+        Calcula uma linha de mão de obra e preserva
+        os dados necessários ao detalhamento.
         """
 
         self._validate_labor(
@@ -76,9 +78,18 @@ class LaborCalculator:
             )
         )
 
-        return (
+        line_cost = (
             labor.input_quantity
             * monetary_value.monetary_value
+        )
+
+        return LaborLineResult(
+            code=labor.generic_item,
+            description=labor.generic_description,
+            unit=labor.unit,
+            quantity=labor.input_quantity,
+            monetary_value=monetary_value.monetary_value,
+            line_cost=line_cost,
         )
 
     # ============================================================

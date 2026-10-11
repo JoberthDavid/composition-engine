@@ -1,6 +1,11 @@
 from decimal import Decimal
 
 from app.domain.composition_node import CompositionNode
+from app.domain.composition_line_result import (
+    EquipmentLineResult,
+    LaborLineResult,
+    MaterialLineResult,
+)
 
 
 class CompositionCalculationResult:
@@ -28,6 +33,9 @@ class CompositionCalculationResult:
         fixed_time_cost: Decimal = Decimal("0"),
         composition_total_raw: Decimal = Decimal("0"),
         composition_unit_cost: Decimal = Decimal("0"),
+        equipment_items: list[EquipmentLineResult] | None = None,
+        labor_items: list[LaborLineResult] | None = None,
+        material_items: list[MaterialLineResult] | None = None,
     ) -> None:
         """
         Inicializa o resultado do cálculo da composição.
@@ -141,6 +149,18 @@ class CompositionCalculationResult:
 
         self.composition_unit_cost = (
             composition_unit_cost
+        )
+
+        self.equipment_items = (
+            equipment_items or []
+        )
+
+        self.labor_items = (
+            labor_items or []
+        )
+
+        self.material_items = (
+            material_items or []
         )
 
     # ============================================================

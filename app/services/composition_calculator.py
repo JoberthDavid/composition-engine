@@ -29,6 +29,11 @@ from app.services.material_calculator import (
 from app.services.operational_cost_calculator import (
     OperationalCostCalculator,
 )
+from app.domain.composition_line_result import (
+    EquipmentLineResult,
+    LaborLineResult,
+    MaterialLineResult,
+)
 
 DECIMAL_ZERO = Decimal("0")
 
@@ -208,7 +213,7 @@ class CompositionCalculator:
         # 1. EQUIPAMENTOS
         # ========================================================
 
-        equipment_cost = (
+        equipment_cost, equipment_items = (
             self._calculate_equipment_cost(
                 node=node,
             )
@@ -218,7 +223,7 @@ class CompositionCalculator:
         # 2. MÃO DE OBRA
         # ========================================================
 
-        labor_cost = (
+        labor_cost, labor_items = (
             self._calculate_labor_cost(
                 node=node,
             )
@@ -291,7 +296,7 @@ class CompositionCalculator:
         # 8. MATERIAIS
         # ========================================================
 
-        materials_cost = (
+        materials_cost, material_items = (
             self._calculate_materials_cost(
                 node=node,
             )
@@ -356,12 +361,11 @@ class CompositionCalculator:
             materials_cost=materials_cost,
             auxiliary_cost=auxiliary_cost,
             fixed_time_cost=fixed_time_cost,
-            composition_total_raw=(
-                composition_total_raw
-            ),
-            composition_unit_cost=(
-                composition_unit_cost
-            ),
+            composition_total_raw=composition_total_raw,
+            composition_unit_cost=composition_unit_cost,
+            equipment_items=equipment_items,
+            labor_items=labor_items,
+            material_items=material_items,
         )
 
     # ============================================================
@@ -371,30 +375,47 @@ class CompositionCalculator:
     def _calculate_equipment_cost(
         self,
         node: CompositionNode,
-    ) -> Decimal:
+    ) -> tuple[
+        Decimal,
+        list[EquipmentLineResult],
+    ]:
         """
-        Calcula o custo total dos equipamentos.
-
-        Cada linha é delegada para EquipmentCalculator.
+        Calcula os equipamentos e preserva o resultado
+        individual de cada linha.
         """
 
         equipment_cost = DECIMAL_ZERO
+        equipment_items = []
 
         for equipment in node.composition.equipments:
 
-            result_eq = (
-                self.equipment_calculator.calculate(
-                    equipment
+            result = (
+                self.equipment_calculator
+                .calculate_detail(
+                    equipment=equipment,
                 )
             )
 
             line_cost = self.round_4(
-                result_eq
+                result.line_cost
             )
 
             equipment_cost += line_cost
 
-        return equipment_cost
+            equipment_items.append(
+                EquipmentLineResult(
+                    code=result.code,
+                    description=result.description,
+                    unit=result.unit,
+                    quantity=result.quantity,
+                    input_use=result.input_use,
+                    productive_value=result.productive_value,
+                    unproductive_value=result.unproductive_value,
+                    line_cost=line_cost,
+                )
+            )
+
+        return equipment_cost, equipment_items
 
     # ============================================================
     # 2. MÃO DE OBRA
@@ -403,30 +424,45 @@ class CompositionCalculator:
     def _calculate_labor_cost(
         self,
         node: CompositionNode,
-    ) -> Decimal:
+    ) -> tuple[
+        Decimal,
+        list[LaborLineResult],
+    ]:
         """
-        Calcula o custo total da mão de obra.
-
-        Cada linha é delegada para LaborCalculator.
+        Calcula a mão de obra e preserva o resultado
+        individual de cada linha.
         """
 
         labor_cost = DECIMAL_ZERO
+        labor_items = []
 
         for labor in node.composition.workmen:
 
-            result_mo = (
-                self.labor_calculator.calculate(
-                    labor
+            result = (
+                self.labor_calculator
+                .calculate_detail(
+                    labor=labor,
                 )
             )
 
             line_cost = self.round_4(
-                result_mo
+                result.line_cost
             )
 
             labor_cost += line_cost
 
-        return labor_cost
+            labor_items.append(
+                LaborLineResult(
+                    code=result.code,
+                    description=result.description,
+                    unit=result.unit,
+                    quantity=result.quantity,
+                    monetary_value=result.monetary_value,
+                    line_cost=line_cost,
+                )
+            )
+
+        return labor_cost, labor_items
 
     # ============================================================
     # 3. FIC
@@ -469,30 +505,45 @@ class CompositionCalculator:
     def _calculate_materials_cost(
         self,
         node: CompositionNode,
-    ) -> Decimal:
+    ) -> tuple[
+        Decimal,
+        list[MaterialLineResult],
+    ]:
         """
-        Calcula o custo total dos materiais.
-
-        Cada linha é delegada para MaterialCalculator.
+        Calcula os materiais e preserva o resultado
+        individual de cada linha.
         """
 
         materials_cost = DECIMAL_ZERO
+        material_items = []
 
         for material in node.composition.materials:
 
-            result_ma = (
-                self.material_calculator.calculate(
-                    material
+            result = (
+                self.material_calculator
+                .calculate_detail(
+                    material=material,
                 )
             )
 
             line_cost = self.round_4(
-                result_ma
+                result.line_cost
             )
 
             materials_cost += line_cost
 
-        return materials_cost
+            material_items.append(
+                MaterialLineResult(
+                    code=result.code,
+                    description=result.description,
+                    unit=result.unit,
+                    quantity=result.quantity,
+                    monetary_value=result.monetary_value,
+                    line_cost=line_cost,
+                )
+            )
+
+        return materials_cost, material_items
 
     # ============================================================
     # 5. ATIVIDADES AUXILIARES E TEMPOS FIXOS

@@ -6,7 +6,11 @@ from app.domain.composition_input import CompositionInput
 from app.domain.composition_node import CompositionNode
 from app.domain.composition_tree import CompositionTree
 from app.services.composition_calculator import CompositionCalculator
-
+from app.domain.composition_line_result import (
+    EquipmentLineResult,
+    LaborLineResult,
+    MaterialLineResult
+)
 
 def _build_composition(
     code: str = "0919001",
@@ -257,16 +261,39 @@ def test_calculate_delegates_cost_components_to_specialized_calculators() -> Non
 
     calculator = _build_calculator()
 
-    calculator.equipment_calculator.calculate.return_value = Decimal(
-        "10"
+    calculator.equipment_calculator.calculate_detail.return_value = (
+        EquipmentLineResult(
+            code="E0001",
+            description="Insumo de teste",
+            unit="UN",
+            quantity=Decimal("1"),
+            input_use=Decimal("1"),
+            productive_value=Decimal("10"),
+            unproductive_value=Decimal("10"),
+            line_cost=Decimal("10"),
+        )
     )
 
-    calculator.labor_calculator.calculate.return_value = Decimal(
-        "20"
+    calculator.labor_calculator.calculate_detail.return_value = (
+        LaborLineResult(
+            code="P9800",
+            description="Insumo de teste",
+            unit="h",
+            quantity=Decimal("1"),
+            monetary_value=Decimal("20"),
+            line_cost=Decimal("20"),
+        )
     )
 
-    calculator.material_calculator.calculate.return_value = Decimal(
-        "30"
+    calculator.material_calculator.calculate_detail.return_value = (
+        MaterialLineResult(
+            code="M0001",
+            description="Insumo de teste",
+            unit="kg",
+            quantity=Decimal("1"),
+            monetary_value=Decimal("30"),
+            line_cost=Decimal("30"),
+        )
     )
 
     calculator.operational_cost_calculator.calculate_total.return_value = (
@@ -299,16 +326,16 @@ def test_calculate_delegates_cost_components_to_specialized_calculators() -> Non
 
     assert result.node is root
 
-    calculator.equipment_calculator.calculate.assert_called_once_with(
-        equipment
+    calculator.equipment_calculator.calculate_detail.assert_called_once_with(
+        equipment=equipment
     )
 
-    calculator.labor_calculator.calculate.assert_called_once_with(
-        labor
+    calculator.labor_calculator.calculate_detail.assert_called_once_with(
+        labor=labor
     )
 
-    calculator.material_calculator.calculate.assert_called_once_with(
-        material
+    calculator.material_calculator.calculate_detail.assert_called_once_with(
+        material=material
     )
 
     calculator.operational_cost_calculator.calculate_total.assert_called_once_with(

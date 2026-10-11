@@ -9,6 +9,10 @@ CompositionInput,
 from app.services.monetary_value_resolver import (
 MonetaryValueResolver,
 )
+from app.domain.composition_line_result import (
+    EquipmentLineResult,
+)
+
 
 DECIMAL_ONE = Decimal("1")
 
@@ -79,33 +83,31 @@ class EquipmentCalculator:
     ) -> Decimal:
         """
         Calcula o custo bruto de uma linha de equipamento.
-
-        Fluxo:
-
-            CompositionInput
-                    ↓
-            resolve PR
-                    ↓
-            resolve IM
-                    ↓
-            calcula custo produtivo
-                    +
-            calcula custo improdutivo
-                    ↓
-            multiplica pela quantidade
-                    ↓
-            resultado
-
-        Parameters
-        ----------
-        equipment:
-            Insumo de equipamento da composição.
-
-        Returns
-        -------
-        Decimal
-            Custo bruto da linha de equipamento.
         """
+
+        return self.calculate_detail(
+            equipment=equipment,
+        ).line_cost
+
+    def calculate_detail(
+        self,
+        equipment: CompositionInput,
+    ) -> EquipmentLineResult:
+        """
+            Calcula uma linha de equipamento e preserva
+            os dados intermediários necessários ao detalhamento.
+
+            A fórmula utilizada é:
+
+                custo =
+                    quantidade
+                    ×
+                    (
+                        uso × custo produtivo
+                        +
+                        (1 - uso) × custo improdutivo
+                    )
+            """
 
         self._validate_equipment(
             equipment=equipment,
@@ -136,7 +138,7 @@ class EquipmentCalculator:
             * unproductive_value
         )
 
-        total_cost = (
+        line_cost = (
             equipment.input_quantity
             * (
                 productive_cost
@@ -144,7 +146,16 @@ class EquipmentCalculator:
             )
         )
 
-        return total_cost
+        return EquipmentLineResult(
+            code=equipment.generic_item,
+            description=equipment.generic_description,
+            unit=equipment.unit,
+            quantity=equipment.input_quantity,
+            input_use=equipment.input_use,
+            productive_value=productive_value,
+            unproductive_value=unproductive_value,
+            line_cost=line_cost,
+        )
 
     # ============================================================
     # VALORES MONETÁRIOS

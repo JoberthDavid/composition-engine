@@ -9,6 +9,10 @@ CompositionInput,
 from app.services.monetary_value_resolver import (
 MonetaryValueResolver,
 )
+from app.domain.composition_line_result import (
+    MaterialLineResult,
+)
+
 
 class MaterialCalculator:
     """
@@ -48,20 +52,19 @@ class MaterialCalculator:
     ) -> Decimal:
         """
         Calcula o custo bruto de uma linha de material.
+        """
 
-        Fluxo:
+        return self.calculate_detail(
+            material=material,
+        ).line_cost
 
-            CompositionInput
-                    ↓
-            MonetaryValueResolver
-                    ↓
-            MonetaryValue
-                    ↓
-            quantidade
-                    ×
-            valor monetário
-                    ↓
-            resultado
+    def calculate_detail(
+        self,
+        material: CompositionInput,
+    ) -> MaterialLineResult:
+        """
+        Calcula uma linha de material e preserva
+        os dados necessários ao detalhamento.
         """
 
         self._validate_material(
@@ -75,9 +78,18 @@ class MaterialCalculator:
             type_system="NA",
         )
 
-        return (
+        line_cost = (
             material.input_quantity
             * monetary_value.monetary_value
+        )
+
+        return MaterialLineResult(
+            code=material.generic_item,
+            description=material.generic_description,
+            unit=material.unit,
+            quantity=material.input_quantity,
+            monetary_value=monetary_value.monetary_value,
+            line_cost=line_cost,
         )
 
     # ============================================================

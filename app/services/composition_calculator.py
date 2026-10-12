@@ -30,6 +30,7 @@ from app.services.operational_cost_calculator import (
     OperationalCostCalculator,
 )
 from app.domain.composition_line_result import (
+    CompositionReferenceLineResult,
     EquipmentLineResult,
     LaborLineResult,
     MaterialLineResult,
@@ -306,7 +307,7 @@ class CompositionCalculator:
         # 9. ATIVIDADES AUXILIARES
         # ========================================================
 
-        auxiliary_cost = (
+        auxiliary_cost, auxiliary_items = (
             self._calculate_children_cost(
                 node=node,
                 input_group="AX",
@@ -318,7 +319,7 @@ class CompositionCalculator:
         # 10. TEMPOS FIXOS
         # ========================================================
 
-        fixed_time_cost = (
+        fixed_time_cost, fixed_time_items = (
             self._calculate_children_cost(
                 node=node,
                 input_group="TF",
@@ -326,9 +327,15 @@ class CompositionCalculator:
             )
         )
 
+
         # ========================================================
         # 11. SOMA DA COMPOSIÇÃO
         # ========================================================
+
+        composition_reference_items = (
+            auxiliary_items
+            + fixed_time_items
+        )
 
         composition_total_raw = (
             operational_unit
@@ -366,6 +373,7 @@ class CompositionCalculator:
             equipment_items=equipment_items,
             labor_items=labor_items,
             material_items=material_items,
+            composition_reference_items=composition_reference_items,
         )
 
     # ============================================================
@@ -550,61 +558,52 @@ class CompositionCalculator:
     # ============================================================
 
     def _calculate_children_cost(
-        self,
-        node: CompositionNode,
-        input_group: str,
-        execution: CalculationExecution,
-    ) -> Decimal:
-        """
-        Calcula o custo das composições filhas AX ou TF.
+            self,
+            node: CompositionNode,
+            input_group: str,
+            execution: CalculationExecution,
+        ) -> tuple[
+            Decimal,
+            list[CompositionReferenceLineResult],
+        ]:
+            children_cost = DECIMAL_ZERO
+            reference_items = []
 
-        Para cada composição filha:
+            for child in node.children:
+                reference_input = child.reference_input
 
-            quantidade da referência
-                ×
-            custo unitário final da filha
+                if reference_input is None:
+                    continue
 
-        A linha é arredondada para quatro casas.
-        """
+                if reference_input.input_group != input_group:
+                    continue
 
-        children_cost = DECIMAL_ZERO
+                child_result = execution.get_result(
+                    node=child,
+                )
 
-        for child in node.children:
-
-            reference_input = (
-                child.reference_input
-            )
-
-            if reference_input is None:
-                continue
-
-            if (
-                reference_input.input_group
-                != input_group
-            ):
-                continue
-
-            child_result = execution.get_result(
-                node=child,
-            )
-
-            child_unit = (
-                self.round_2(
+                child_unit = self.round_2(
                     child_result.composition_unit_cost
                 )
-            )
 
-            quantity = (
-                reference_input.input_quantity
-            )
+                quantity = reference_input.input_quantity
 
-            line_cost = (
-                self.round_4(
-                    quantity
-                    * child_unit
+                line_cost = self.round_4(
+                    quantity * child_unit
                 )
-            )
 
-            children_cost += line_cost
+                children_cost += line_cost
 
-        return children_cost
+                reference_items.append(
+                    CompositionReferenceLineResult(
+                        group=reference_input.input_group,
+                        code=reference_input.generic_item,
+                        description=reference_input.generic_description,
+                        unit=reference_input.unit,
+                        quantity=quantity,
+                        child_unit_cost=child_unit,
+                        line_cost=line_cost,
+                    )
+                )
+
+            return children_cost, reference_items

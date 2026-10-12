@@ -44,3 +44,18 @@ class MaterialLineResult:
     quantity: Decimal
     monetary_value: Decimal
     line_cost: Decimal
+
+
+@dataclass(frozen=True)
+class CompositionReferenceLineResult:
+    """
+    Resultado detalhado de uma linha que referencia outra composição.
+    """
+
+    group: str
+    code: str
+    description: str
+    unit: str
+    quantity: Decimal
+    child_unit_cost: Decimal
+    line_cost: Decimal

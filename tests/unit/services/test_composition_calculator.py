@@ -425,10 +425,87 @@ def test_calculate_uses_child_unit_cost_for_auxiliary_activity() -> None:
 
     result = calculator.calculate(tree)
 
+    assert len(result.composition_reference_items) == 1
+
+    reference_item = (
+        result.composition_reference_items[0]
+    )
+
+    assert reference_item.group == "AX"
+    assert reference_item.code == "0919002"
+    assert reference_item.description == "Insumo de teste"
+    assert reference_item.unit == "UN"
+    assert reference_item.quantity == Decimal("2")
+    assert reference_item.child_unit_cost == Decimal("10")
+    assert reference_item.line_cost == Decimal("20")
+
+def test_calculate_preserves_fixed_time_reference_detail() -> None:
+    """
+    Uma composição pai com uma referência TF deve preservar
+    o detalhamento da linha de tempo fixo.
+    """
+
+    calculator = _build_calculator()
+
+    _configure_zero_cost_calculators(
+        calculator
+    )
+
+    child_reference = _build_input(
+        input_group="TF",
+        code="0900001",
+        quantity="3",
+    )
+
+    parent_composition = _build_composition(
+        code="0919001",
+    )
+
+    child_composition = _build_composition(
+        code="0900001",
+    )
+
+    root = CompositionNode(
+        composition=parent_composition,
+    )
+
+    child = CompositionNode(
+        composition=child_composition,
+        reference_input=child_reference,
+    )
+
+    root.add_child(child)
+
+    tree = CompositionTree(
+        root=root,
+    )
+
+    calculator.operational_cost_calculator.calculate_total.side_effect = [
+        Decimal("10"),
+        Decimal("0"),
+    ]
+
+    calculator.operational_cost_calculator.calculate_unit.side_effect = [
+        Decimal("10"),
+        Decimal("0"),
+    ]
+
+    result = calculator.calculate(tree)
+
     assert result.node is root
 
-    assert result.auxiliary_cost == Decimal("20")
+    assert result.fixed_time_cost == Decimal("30")
 
-    assert result.composition_total_raw == Decimal("20")
+    assert len(
+        result.composition_reference_items
+    ) == 1
 
-    assert result.composition_unit_cost == Decimal("20")
+    reference_item = (
+        result.composition_reference_items[0]
+    )
+
+    assert reference_item.group == "TF"
+    assert reference_item.code == "0900001"
+    assert reference_item.quantity == Decimal("3")
+    assert reference_item.child_unit_cost == Decimal("10")
+    assert reference_item.line_cost == Decimal("30")

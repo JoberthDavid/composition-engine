@@ -2,6 +2,7 @@ from decimal import Decimal
 
 from app.domain.composition_node import CompositionNode
 from app.domain.composition_line_result import (
+    CompositionReferenceLineResult,
     EquipmentLineResult,
     LaborLineResult,
     MaterialLineResult,
@@ -36,6 +37,7 @@ class CompositionCalculationResult:
         equipment_items: list[EquipmentLineResult] | None = None,
         labor_items: list[LaborLineResult] | None = None,
         material_items: list[MaterialLineResult] | None = None,
+        composition_reference_items: ( list[CompositionReferenceLineResult] | None ) = None,
     ) -> None:
         """
         Inicializa o resultado do cálculo da composição.
@@ -161,6 +163,10 @@ class CompositionCalculationResult:
 
         self.material_items = (
             material_items or []
+        )
+
+        self.composition_reference_items = (
+            composition_reference_items or []
         )
 
     # ============================================================

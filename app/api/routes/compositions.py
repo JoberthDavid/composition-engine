@@ -10,6 +10,7 @@ from app.schemas.composition_calculation import (
     CompositionCalculationDetailResponse,
     CompositionCalculationLinesResponse,
     CompositionCalculationResponse,
+    CompositionReferenceLineResponse,
     EquipmentLineResponse,
     LaborLineResponse,
     MaterialLineResponse,
@@ -129,6 +130,18 @@ def calculate_detail(
                     line_cost=item.line_cost,
                 )
                 for item in result.material_items
+            ],
+            composition_references=[
+                CompositionReferenceLineResponse(
+                    group=item.group,
+                    code=item.code,
+                    description=item.description,
+                    unit=item.unit,
+                    quantity=item.quantity,
+                    child_unit_cost=item.child_unit_cost,
+                    line_cost=item.line_cost,
+                )
+                for item in result.composition_reference_items
             ],
         ),
     )

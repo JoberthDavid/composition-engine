@@ -5,8 +5,11 @@ import pytest
 from pydantic import ValidationError
 
 from app.schemas.composition_calculation import (
+    CompositionCalculationDetailResponse,
+    CompositionCalculationLinesResponse,
     CompositionCalculationRequest,
     CompositionCalculationResponse,
+    CompositionReferenceLineResponse,
 )
 
 
@@ -99,3 +102,36 @@ def test_response_serializes_decimal_without_float_conversion() -> None:
     data = response.model_dump()
 
     assert data["unit_cost"] == Decimal("105890.00")
+
+def test_detail_response_accepts_composition_reference() -> None:
+    reference = CompositionReferenceLineResponse(
+        group="AX",
+        code="0919002",
+        description="Insumo de teste",
+        unit="UN",
+        quantity=Decimal("2"),
+        child_unit_cost=Decimal("10"),
+        line_cost=Decimal("20"),
+    )
+
+    detail = CompositionCalculationDetailResponse(
+        composition_id="0919013",
+        reference_base_date="2021-10-01",
+        unit_cost=Decimal("20"),
+        detail=CompositionCalculationLinesResponse(
+            equipment=[],
+            labor=[],
+            materials=[],
+            composition_references=[reference],
+        ),
+    )
+
+    assert (
+        detail.detail.composition_references[0].group
+        == "AX"
+    )
+
+    assert (
+        detail.detail.composition_references[0].line_cost
+        == Decimal("20")
+    )

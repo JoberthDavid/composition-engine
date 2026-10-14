@@ -11,6 +11,10 @@ from app.api.routes.compositions import router
 from app.api.dependencies import (
     create_composition_calculation_service,
 )
+from app.domain.composition_line_result import (
+    CompositionReferenceLineResult,
+)
+
 
 def create_test_app(
     service: Mock,
@@ -333,6 +337,7 @@ def test_calculate_detail_returns_complete_cost_breakdown(
                 line_cost=Decimal("123.456780"),
             ),
         ],
+        composition_reference_items=[],
     )
 
     app = create_test_app(service)
@@ -401,6 +406,91 @@ def test_calculate_detail_returns_complete_cost_breakdown(
         "quantity": "10.0000",
         "monetary_value": "12.345678",
         "line_cost": "123.456780",
+    }
+
+    service.calculate.assert_called_once_with(
+        composition_id="0919013",
+    )
+
+def test_calculate_detail_returns_composition_references(
+    jwt_headers,
+) -> None:
+    service = Mock()
+
+    service.calculate.return_value = SimpleNamespace(
+        composition_code="0919013",
+        composition_unit_cost=Decimal("20.00"),
+        equipment_items=[],
+        labor_items=[],
+        material_items=[],
+        composition_reference_items=[
+            CompositionReferenceLineResult(
+                group="AX",
+                code="0919002",
+                description="Insumo de teste",
+                unit="UN",
+                quantity=Decimal("2"),
+                child_unit_cost=Decimal("10"),
+                line_cost=Decimal("20"),
+            ),
+            CompositionReferenceLineResult(
+                group="TF",
+                code="0900001",
+                description="Tempo fixo",
+                unit="UN",
+                quantity=Decimal("3"),
+                child_unit_cost=Decimal("10"),
+                line_cost=Decimal("30"),
+            ),
+        ],
+    )
+
+    app = create_test_app(service)
+
+    client = TestClient(app)
+
+    response = client.post(
+        "/compositions/0919013/calculate-detail",
+        headers=jwt_headers(["composition:calculate"]),
+        params={
+            "source_file_uf": "DF",
+            "type_system": "ON",
+            "methodology": "SC",
+            "monetary_base_date": "2023-01-01",
+            "reference_base_date": "2023-01-01",
+        },
+    )
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert data["composition_id"] == "0919013"
+    assert data["reference_base_date"] == "2023-01-01"
+    assert data["unit_cost"] == "20.00"
+
+    references = data["detail"]["composition_references"]
+
+    assert len(references) == 2
+
+    assert references[0] == {
+        "group": "AX",
+        "code": "0919002",
+        "description": "Insumo de teste",
+        "unit": "UN",
+        "quantity": "2",
+        "child_unit_cost": "10",
+        "line_cost": "20",
+    }
+
+    assert references[1] == {
+        "group": "TF",
+        "code": "0900001",
+        "description": "Tempo fixo",
+        "unit": "UN",
+        "quantity": "3",
+        "child_unit_cost": "10",
+        "line_cost": "30",
     }
 
     service.calculate.assert_called_once_with(

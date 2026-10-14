@@ -41,12 +41,20 @@ class MaterialLineResponse(BaseModel):
     monetary_value: Decimal
     line_cost: Decimal
 
+class CompositionReferenceLineResponse(BaseModel):
+    group: str
+    code: str
+    description: str
+    unit: str
+    quantity: Decimal
+    child_unit_cost: Decimal
+    line_cost: Decimal
 
 class CompositionCalculationLinesResponse(BaseModel):
     equipment: list[EquipmentLineResponse]
     labor: list[LaborLineResponse]
     materials: list[MaterialLineResponse]
-
+    composition_references: list[CompositionReferenceLineResponse]
 
 class CompositionCalculationDetailResponse(BaseModel):
     composition_id: str
